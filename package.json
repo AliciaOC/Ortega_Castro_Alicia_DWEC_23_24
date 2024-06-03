@@ -1,0 +1,34 @@
+{
+  "name": "final-javascript",
+  "version": "1.0.0",
+  "description": "Proyecto final de JavaScript",
+  "scripts": {
+    "desarrollo": "parcel src/index.html --dist-dir desarrollo",
+    "produccion": "parcel build src/index.html --public-url './' --dist-dir produccion",
+    "limpieza": "rimraf desarrollo produccion .parcel-cache",
+    "des": "npm-run-all limpieza desarrollo",
+    "prod": "npm-run-all limpieza produccion"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AliciaOC/final-javascript.git"
+  },
+  "keywords": [
+    "javascript",
+    "tienda",
+    "ajax"
+  ],
+  "author": "Alicia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AliciaOC/final-javascript/issues"
+  },
+  "homepage": "https://github.com/AliciaOC/final-javascript#readme",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.12.0",
+    "npm-run-all": "^4.1.5",
+    "parcel": "^2.12.0",
+    "parcel-plugin-imagemin": "^4.0.2",
+    "rimraf": "^5.0.7"
+  }
+}

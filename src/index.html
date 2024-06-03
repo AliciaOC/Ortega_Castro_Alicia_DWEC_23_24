@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trabajo final JavaScript</title>
+    <script src="js/main.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <section class="encabezado">
+        <a href="#">Productos</a>
+        <a href="html/login.html">Inicio de Sesión</a>
+        <button id="boton-logout">Cerrar sesión</button>
+        <a href="html/carrito.html">Carrito</a>
+      </section>
+      <nav id="categorias-nav">
+        <div id="caja-categorias">
+          <!-- Aquí se insertarán las categorías con JavaScript -->
+        </div>
+      </nav>
+    </header>
+    <main>
+      <!--ordenar ascendente o descendente-->
+      <form>
+        <label for="ordenar">Ordenar por:</label>
+        <select name="ordenar" id="ordenar">
+          <option value="ascendente" selected>Ascendente</option>
+          <option value="descendente">Descendente</option>
+        </select>
+      </form>
+      <!--vista en tabla o como lista-->
+      <form>
+        <label for="vista">Vista:</label>
+        <select name="vista" id="vista">
+          <option value="tabla" selected>Tabla</option>
+          <option value="lista">Lista</option>
+        </select>
+      </form>
+      <section id="productos">
+        <!-- Aquí se insertarán los productos con JavaScript -->
+      </section>
+    </main>
+  </body>
+</html>
