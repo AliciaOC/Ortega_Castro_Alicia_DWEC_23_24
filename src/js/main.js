@@ -10,9 +10,28 @@ let productosSection = document.getElementById("productos");
 let vista= document.getElementById("vista").value;
 let orden= document.getElementById("ordenar").value;
 
+//Para los likes y dislikes
+let megustaNumero=0;
+let nomegustaNumero=0;
+let parrafoLikes=document.getElementById('totalLikes');
+let parrafoDislikes=document.getElementById('totalDislikes');
+
 //fin variables y constantes
 
 //Funciones
+function actualizarLikes(){
+    textoLikes=parrafoLikes.innerHTML;
+    textoLikes=textoLikes+` ${megustaNumero}`;
+    parrafoLikes.innerHTML='';
+    parrafoLikes.innerHTML=textoLikes;
+}
+function actualizarDislikes(){
+    textoDislikes=parrafoDislikes.innerHTML;
+    textoDislikes=textoDislikes+` ${nomegustaNumero}`;
+    parrafoDislikes.innerHTML='';
+    parrafoDislikes.innerHTML=textoDislikes;
+}
+
 function cargarCategoriasNav(){
 fetch(URL_CATEGORIAS)
 .then(response => response.json())
@@ -44,8 +63,8 @@ function cargarProductos(categoria){
         .then(res=>res.json())
         .then(productos=>{
         productos.forEach(producto => {
-            producto.gusta = 0;
-            producto.nogusta = 0;
+            producto.gusta = false;
+            producto.nogusta = false;
         });
         mostrarproductos(productos);
     });
@@ -54,8 +73,8 @@ function cargarProductos(categoria){
         .then(res=>res.json())
         .then(productos=>{
             productos.forEach(producto => {
-                producto.gusta = 0;
-                producto.nogusta = 0;
+                producto.gusta = false;
+                producto.nogusta = false;
             });
             mostrarproductos(productos);
         });
@@ -105,7 +124,7 @@ function distribucionTabla(productos){
             <button class="favoritos-boton">Añadir a favoritos</button>
             <button class="gusta-boton">Me gusta</button>
             <button class="no-gusta-boton">No me gusta</button>
-            <button class="detalle-boton">Ver ficha del producto</button>
+            <a href='html/producto.html/?producto=${producto.id}' class="detalle-boton">Ver ficha del producto</a>
             `;
             fila.appendChild(celda);
             contador++;
@@ -113,6 +132,8 @@ function distribucionTabla(productos){
         tabla.appendChild(fila);
     }
     productosSection.appendChild(tabla);
+    gustaListener(productos);
+    noGustaListener(productos);
     
 }
 
@@ -122,6 +143,7 @@ function distribucionLista(productos){
     productos.forEach(producto => {
         let item = document.createElement('li');
         item.classList.add('casilla-producto');//Para estilos, los mismos que si fuera tabla
+        
         item.innerHTML = `
         <img src="${producto.image}" alt="${producto.title}">
         <p>${producto.title}</p>
@@ -130,11 +152,64 @@ function distribucionLista(productos){
         <button class="favoritos-boton">Añadir a favoritos</button>
         <button class="gusta-boton">Me gusta</button>
         <button class="no-gusta-boton">No me gusta</button>
-        <button class="detalle-boton">Ver ficha del producto</button>
+        <a href='html/producto.html/?producto=${producto.id}' class="detalle-boton">Ver ficha del producto</a>
         `;
         lista.appendChild(item);
     });
     productosSection.appendChild(lista);
+    gustaListener(productos);
+    noGustaListener(productos);
+}
+
+function gustaListener(productos){
+    /*productos.forEach(producto => {
+        let botonGusta = document.getElementsByClassName('gusta-boton');
+        botonGusta.addEventListener('click',()=>{
+            megusta(producto);
+            if(producto.gusta){
+                botonGusta.classList.add('gusta-seleccionado');
+            }
+        });
+    });
+    */
+   
+}
+
+function noGustaListener(productos){
+    /*
+    productos.forEach(producto => {
+        let botonNoGusta = document.getElementsByClassName('no-gusta-boton');
+        botonNoGusta.addEventListener('click',()=>{
+            nomegusta(producto);
+            if(producto.nogusta){
+                botonNoGusta.classList.add('no-gusta-seleccionado');
+            }
+        });
+    });
+    */
+}
+
+function megusta(producto){
+    if(producto.gusta==false){
+        producto.gusta=true;
+        megustaNumero++;
+        actualizarLikes();
+    }else{
+        producto.gusta=false;
+        megustaNumero--;
+        actualizarLikes();
+    }
+}
+function nomegusta(producto){
+    if(producto.nogusta==false){
+        producto.nogusta=true;
+        nomegustaNumero++;
+        actualizarDislikes();
+    }else{
+        producto.nogusta=false;
+        nomegustaNumero--;
+        actualizarDislikes();
+    }
 }
 
 function comprobarFiltroCategoria(){

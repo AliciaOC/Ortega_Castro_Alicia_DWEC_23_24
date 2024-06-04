@@ -68,5 +68,11 @@
                 transform: scale(0.8);
             }
         }
+        .gusta-seleccionado{
+            background-color: greenyellow;
+        }
+        .no-gusta-seleccionado{
+            background-color: red;
+        }
     }
 }

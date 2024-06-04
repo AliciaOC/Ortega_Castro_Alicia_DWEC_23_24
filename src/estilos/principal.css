@@ -68,4 +68,10 @@
 }
 #productos .casilla-producto .anadir-carrito:active {
   transform: scale(0.8);
+}
+#productos .casilla-producto .gusta-seleccionado {
+  background-color: greenyellow;
+}
+#productos .casilla-producto .no-gusta-seleccionado {
+  background-color: red;
 }/*# sourceMappingURL=principal.css.map */

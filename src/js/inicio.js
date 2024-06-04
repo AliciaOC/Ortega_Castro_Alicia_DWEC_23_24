@@ -1,6 +1,8 @@
 borrarFiltroCategoria();
 cargarCategoriasNav();
 cargarProductos();
+actualizarLikes();
+actualizarDislikes();
 
 document.getElementById('enlace-productos').addEventListener('click', ()=>{
     if(comprobarFiltroCategoria()){
