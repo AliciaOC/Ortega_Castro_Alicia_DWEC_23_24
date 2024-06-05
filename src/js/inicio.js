@@ -4,13 +4,6 @@ cargarProductos();
 actualizarLikes();
 actualizarDislikes();
 
-document.getElementById('enlace-productos').addEventListener('click', ()=>{
-    if(comprobarFiltroCategoria()){
-        borrarFiltroCategoria();
-    }
-    cargarProductos();
-});
-
 //Para cambiar el orden
 //va a ser un problema porque con el scroll infinito se repiten los productos ya que solo hay 20
 document.getElementById('ordenar').addEventListener('click',()=>{

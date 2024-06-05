@@ -6,6 +6,8 @@ const BOTON_LOGOUT = document.getElementById("boton-logout");
 
 let categoriasNav = document.getElementById("categorias-nav");
 let botonesCategorias = document.getElementsByClassName('categoria-boton');
+let formOrden = document.getElementById("form-orden");
+let formVistas = document.getElementById("form-vistas");
 let productosSection = document.getElementById("productos");
 let vista= document.getElementById("vista").value;
 let orden= document.getElementById("ordenar").value;
@@ -15,8 +17,16 @@ let megustaNumero=0;
 let nomegustaNumero=0;
 let parrafoLikes=document.getElementById('totalLikes');
 let parrafoDislikes=document.getElementById('totalDislikes');
-
 //fin variables y constantes
+
+//EventListeners Generales
+document.getElementById('enlace-productos').addEventListener('click', ()=>{
+    if(comprobarFiltroCategoria()){
+        borrarFiltroCategoria();
+    }
+    cargarProductos();
+});
+//Fin EventListeners Generales
 
 //Funciones
 function actualizarLikes(){
@@ -58,6 +68,24 @@ fetch(URL_CATEGORIAS)
 }
 
 function cargarProductos(categoria){
+   //Reviso si los form de orden y vista están vacíos para volver a ponerles su contenido. Se vacían cuando se carga la ficha de un producto
+    if(formOrden.innerHTML==""){//Si está vacío, lo relleno
+        formOrden.innerHTML=` 
+        <label for="ordenar">Ordenar por precio:</label>
+        <select name="ordenar" id="ordenar">
+          <option value="ascendente" selected>Ascendente</option>
+          <option value="descendente">Descendente</option>
+        </select>`;
+    } 
+    if(formVistas.innerHTML==""){//Si está vacío, lo relleno
+        formVistas.innerHTML=`
+        <label for="vista">Vista:</label>
+        <select name="vista" id="vista">
+          <option value="tabla">Tabla</option>
+          <option value="lista">Lista</option>
+        </select>`;
+    }
+
     if(categoria==null){//Si no se le pasa ninguna categoría, carga todos los productos
     fetch(URL_PRODUCTOS) 
         .then(res=>res.json())
@@ -124,7 +152,7 @@ function distribucionTabla(productos){
             <button class="favoritos-boton">Añadir a favoritos</button>
             <button class="gusta-boton">Me gusta</button>
             <button class="no-gusta-boton">No me gusta</button>
-            <a href='html/producto.html/?producto=${producto.id}' class="detalle-boton">Ver ficha del producto</a>
+            <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
             `;
             fila.appendChild(celda);
             contador++;
@@ -161,6 +189,34 @@ function distribucionLista(productos){
     noGustaListener(productos);
 }
 
+function mostrarDetallesProducto(id){
+    //Vacío el contenido del main
+    formOrden.innerHTML="";
+    formVistas.innerHTML="";
+    productosSection.innerHTML="";
+    //Cargo el producto
+    fetch(`${URL_PRODUCTOS}/${id}`)
+    .then(res=>res.json())
+    .then(producto=>{
+        //Creo la estructura de la ficha del producto
+        let ficha = document.createElement('article');
+        ficha.setAttribute('class','detalles-producto');
+        ficha.innerHTML = `
+        <img src="${producto.image}" alt="${producto.title}">
+        <h2>${producto.title}</h2>
+        <p>Categoria: ${producto.category}</p>
+        <p>${producto.description}</p>
+        <p>${producto.price}€</p>
+        <button class="anadir-carrito">Añadir al carrito</button>
+        <button class="favoritos-boton">Añadir a favoritos</button>
+        <button class="gusta-boton">Me gusta</button>
+        <button class="no-gusta-boton">No me gusta</button>
+        `;
+        productosSection.appendChild(ficha);
+    }
+)
+}
+//------------
 function gustaListener(productos){
     /*productos.forEach(producto => {
         let botonGusta = document.getElementsByClassName('gusta-boton');

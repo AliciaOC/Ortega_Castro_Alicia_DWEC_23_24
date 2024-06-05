@@ -75,4 +75,12 @@
             background-color: red;
         }
     }
+    .detalles-producto{
+        border: #c66000 3px solid;
+        border-radius: 10px;
+        padding: 3rem;
+        img{
+            max-width: 300px;
+        }
+    }
 }

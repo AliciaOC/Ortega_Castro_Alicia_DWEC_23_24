@@ -74,4 +74,12 @@
 }
 #productos .casilla-producto .no-gusta-seleccionado {
   background-color: red;
+}
+#productos .detalles-producto {
+  border: #c66000 3px solid;
+  border-radius: 10px;
+  padding: 3rem;
+}
+#productos .detalles-producto img {
+  max-width: 300px;
 }/*# sourceMappingURL=principal.css.map */
