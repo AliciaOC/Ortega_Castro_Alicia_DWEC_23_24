@@ -19,54 +19,8 @@ cargarProductos();
 //actualizarDislikes();
 //----------------------------------------------
 
-//eventos
-document.getElementById('enlace-productos').addEventListener('click', (event)=>{
-    event.preventDefault();
-    if(comprobarFiltroCategoria()){
-        borrarFiltroCategoria();
-    }
-    cargarProductos();
-});
-
-//Para cambiar el orden
-//va a ser un problema porque con el scroll infinito se repiten los productos ya que solo hay 20
-document.getElementById('ordenar').addEventListener('click',()=>{
-    //Primer click para abrir las opciones, no lo tengo en cuenta pero necesito escucharlo para el segundo click
-    //Segundo click para cambiar el orden
-    document.getElementById('ordenar').addEventListener('click',()=>{
-        //Reviso si ha cambiado el orden
-        if(orden!=document.getElementById('ordenar').value){
-            orden = document.getElementById('ordenar').value;
-            //miro si ha filtrado por categoria o no
-            if(comprobarFiltroCategoria()){
-                cargarProductos(comprobarFiltroCategoria());
-            }else{
-                cargarProductos();
-            }
-        }
-    });
-});
-
-//Para cambiar la vista
-document.getElementById('vista').addEventListener('click',()=>{
-//primer click para abrir las opciones
-//al segundo click puede que haya cambiado la vista
-    document.getElementById('vista').addEventListener('click',()=>{
-        //reviso si ha cambiado la vista
-        if(vista!=document.getElementById('vista').value){
-        vista = document.getElementById('vista').value;
-        //miro si ha filtrado por categoria o no
-        if(comprobarFiltroCategoria()){
-            cargarProductos(comprobarFiltroCategoria());
-        }else{
-            cargarProductos();
-        }
-        }
-    });
-});
-//----------------------------------------------
-
 //funciones
+//de la categoría del nav bar de index.html
 function cargarCategoriasNav(){
     fetch(URL_CATEGORIAS)
     .then(response => response.json())
@@ -176,11 +130,12 @@ function cargarProductos(categoria){
                  <p>${producto.title}</p>
                  <p>${producto.price}€</p>
                  <article value=${producto}>
-                     <button class="anadir-carrito">Añadir al carrito</button>
-                     <button class="favoritos-boton">Añadir a favoritos</button>
-                     <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
-                     <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
-                     <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
+                    <label for='anadir-carrito'>Unidades</label>
+                    <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
+                    <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                    <button class="favoritos-boton">Añadir a favoritos</button>
+                    <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
+                    <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
+                    <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
                  </article>
              `;
              fila.appendChild(celda);
@@ -203,11 +158,12 @@ function cargarProductos(categoria){
              <p>${producto.title}</p>
              <p>${producto.price}€</p>
              <article value=${producto}>
-                 <button class="anadir-carrito">Añadir al carrito</button>
-                 <button class="favoritos-boton">Añadir a favoritos</button>
-                 <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
-                 <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
-                 <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
+                <label for='anadir-carrito'>Unidades</label>
+                <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
+                <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                <button class="favoritos-boton">Añadir a favoritos</button>
+                <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
+                <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
+                <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
              </article>
          `;
          lista.appendChild(item);
@@ -252,16 +208,100 @@ function cargarProductos(categoria){
          <p>${producto.description}</p>
          <p>${producto.price}€</p>
          <article value=${producto}>
-             <button class="anadir-carrito">Añadir al carrito</button>
-             <button class="favoritos-boton">Añadir a favoritos</button>
-             <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
-             <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
-             <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
+            <label for='anadir-carrito'>Unidades</label>
+            <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
+            <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>
+            <button class="favoritos-boton">Añadir a favoritos</button>
+            <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
+            <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
+            <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
          </article>
          `;
          productosSection.appendChild(ficha);
      }
  )
  }
-//window.addEventListener('scroll', scrollInfinito);
+
+ //Para añadir productos al carrito
+function anadirCarrito(productoID){
+    if(localStorage.getItem('usuarioLogeado')!=null){
+        let carrito = JSON.parse(localStorage.getItem('carrito'));
+        if(carrito==null){
+            carrito=[];
+        }
+        //Primero obtengo las unidades del producto del input que es hermano
+        let unidades = document.getElementById(`unidades${productoID}`).value;
+        //Busco el producto en el array de productos
+        fetch(`${URL_PRODUCTOS}/${productoID}`)
+        .then(res=>res.json())
+        .then(producto=>{
+            //Compruebo si ya habia unidades de ese producto en el carrito
+            let productoEncontrado = carrito.find(p=>p.id==producto.id);
+            if(productoEncontrado!=undefined){
+                //Si ya estaba, sumo las unidades
+                productoEncontrado.unidades+=parseInt(unidades);
+                localStorage.setItem('carrito',JSON.stringify(carrito));
+                alert('Nuevas unidades del producto añadidas al carrito');
+            }else{
+                //Si no estaba, añado las unidades al producto
+                producto.unidades=unidades;
+                //Lo añado al carrito
+                carrito.push(producto);
+                //Lo guardo en localStorage
+                localStorage.setItem('carrito',JSON.stringify(carrito));
+                alert('Producto añadido al carrito');
+            }
+        });        
+    }else{
+        alert('Primero inicia sesión');
+    }
+}
+//----------------------------------------------
+
+//---------------------------------eventos
+document.getElementById('enlace-productos').addEventListener('click', (event)=>{
+    event.preventDefault();
+    if(comprobarFiltroCategoria()){
+        borrarFiltroCategoria();
+    }
+    cargarProductos();
+});
+
+//Para cambiar el orden
+//va a ser un problema porque con el scroll infinito se repiten los productos ya que solo hay 20
+document.getElementById('ordenar').addEventListener('click',()=>{
+    //Primer click para abrir las opciones, no lo tengo en cuenta pero necesito escucharlo para el segundo click
+    //Segundo click para cambiar el orden
+    document.getElementById('ordenar').addEventListener('click',()=>{
+        //Reviso si ha cambiado el orden
+        if(orden!=document.getElementById('ordenar').value){
+            orden = document.getElementById('ordenar').value;
+            //miro si ha filtrado por categoria o no
+            if(comprobarFiltroCategoria()){
+                cargarProductos(comprobarFiltroCategoria());
+            }else{
+                cargarProductos();
+            }
+        }
+    });
+});
+
+//Para cambiar la vista
+document.getElementById('vista').addEventListener('click',()=>{
+//primer click para abrir las opciones
+//al segundo click puede que haya cambiado la vista
+    document.getElementById('vista').addEventListener('click',()=>{
+        //reviso si ha cambiado la vista
+        if(vista!=document.getElementById('vista').value){
+        vista = document.getElementById('vista').value;
+        //miro si ha filtrado por categoria o no
+        if(comprobarFiltroCategoria()){
+            cargarProductos(comprobarFiltroCategoria());
+        }else{
+            cargarProductos();
+        }
+        }
+    });
+});
+
 

@@ -3,6 +3,7 @@
 function logout(){
     if(localStorage.getItem('usuarioLogeado')!=null){
         localStorage.removeItem('usuarioLogeado');
+        localStorage.removeItem('carrito');
         alert('Sesión cerrada');
         window.location.href='index.html';
     }else{

@@ -4,6 +4,8 @@ const URL_USUARIOS='https://fakestoreapi.com/users';
 
 
 //----------Eventos
+//este if-else entra en acción en cuanto entra en login.html
+if(!localStorage.getItem('usuarioLogeado')){
 document.getElementById('login-form').addEventListener('submit', async function(event) { //async es por el await
     event.preventDefault();
 
@@ -30,15 +32,20 @@ document.getElementById('login-form').addEventListener('submit', async function(
                 alert('Usuario o contraseña incorrectos');
             }
         }else{
-            //TERMINAR ESTO!!!!!!!!!
             alert('Hola de nuevo, '+usuarioApi.username+'!');
             //Guardo en localstorage el usuario que ha iniciado sesión
             localStorage.setItem('usuarioLogeado', JSON.stringify(usuarioApi));
+            window.location.href='index.html';
         }
     } catch (error) {
         console.error('Error:', error);
         alert('Ocurrió un error al iniciar sesión');
     }
 });
+}else{
+    alert(`Ya has iniciado sesión, ${
+        JSON.parse(localStorage.getItem('usuarioLogeado')).nombre
+    }`);
+    window.location.href='index.html';}
 
 //----------Funciones
