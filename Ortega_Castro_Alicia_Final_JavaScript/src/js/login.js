@@ -48,4 +48,3 @@ document.getElementById('login-form').addEventListener('submit', async function(
     }`);
     window.location.href='index.html';}
 
-//----------Funciones
