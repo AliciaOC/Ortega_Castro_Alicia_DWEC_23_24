@@ -9,17 +9,14 @@ let formVistas = document.getElementById("form-vistas");
 let productosSection = document.getElementById("productos");
 let vista= document.getElementById("vista").value;
 let orden= document.getElementById("ordenar").value;
-//----------------------------------------------
 
-//llamadas a funciones
+
+//----------------llamadas a funciones
 borrarFiltroCategoria();
 cargarCategoriasNav();
 cargarProductos();
-//actualizarLikes();
-//actualizarDislikes();
-//----------------------------------------------
 
-//---------------------------------eventos
+//---------------Eventos
 document.getElementById('enlace-productos').addEventListener('click', (event)=>{
     event.preventDefault();
     if(comprobarFiltroCategoria()){
@@ -29,7 +26,6 @@ document.getElementById('enlace-productos').addEventListener('click', (event)=>{
 });
 
 //Para cambiar el orden
-//va a ser un problema porque con el scroll infinito se repiten los productos ya que solo hay 20
 document.getElementById('ordenar').addEventListener('click',()=>{
     //Primer click para abrir las opciones, no lo tengo en cuenta pero necesito escucharlo para el segundo click
     //Segundo click para cambiar el orden
@@ -64,9 +60,10 @@ document.getElementById('vista').addEventListener('click',()=>{
         }
     });
 });
-//----------------------------------------------
 
-//funciones
+
+//-----------------------funciones
+
 //de la categoría del nav bar de index.html
 function cargarCategoriasNav(){
     fetch(URL_CATEGORIAS)
@@ -113,27 +110,15 @@ function cargarProductos(categoria){
          </select>`;
      }
  
-     //Ya sí, cargo los productos dependiendo de si hay categoría seleccionada o no
+     //Ya sí: cargo los productos dependiendo de si hay categoría seleccionada o no
      if(categoria==null){//Si no se le pasa ninguna categoría, carga todos los productos
      fetch(URL_PRODUCTOS) 
          .then(res=>res.json())
-         .then(productos=>{
-         productos.forEach(producto => {
-             producto.gusta = false;
-             producto.nogusta = false;
-         });
-         mostrarproductos(productos);
-     });
+         .then(productos=>mostrarproductos(productos));
      }else{//Si se le pasa una categoría, carga los productos de esa categoría 
          fetch(`${URL_PRODUCTOS}/category/${categoria}`)
          .then(res=>res.json())
-         .then(productos=>{
-             productos.forEach(producto => {
-                 producto.gusta = false;
-                 producto.nogusta = false;
-             });
-             mostrarproductos(productos);
-         });
+         .then(productos=>mostrarproductos(productos));
      }  
  }
  
@@ -173,20 +158,24 @@ function cargarProductos(categoria){
              let producto = productos[contador];
              celda.classList.add('casilla-producto');//Para estilos
              celda.innerHTML = `
-                 <img src="${producto.image}" alt="${producto.title}">
-                 <p>${producto.title}</p>
-                 <p>${producto.price}€</p>
-                 <article value=${producto}>
-                    <label for='anadir-carrito'>Unidades</label>
-                    <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
-                    <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                    <button class="favoritos-boton">Añadir a favoritos</button>
-                    <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
-                    <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
-                    <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
-                 </article>
+                <img src="${producto.image}" alt="${producto.title}">
+                <p>${producto.title}</p>
+                <p>${producto.price}€</p>
+                <label for='anadir-carrito'>Unidades</label>
+                <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
+                <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                    
+                <button onclick='likePulsado(${producto.id})' class="gusta-boton">Me gusta</button>
+                <button onclick='dislikePulsado(${producto.id})'class="no-gusta-boton">No me gusta</button>
+                <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
              `;
-             fila.appendChild(celda);
-             contador++;
+            if(esFavorito(producto.id)){
+                celda.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
+            }else{
+                celda.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton">Añadir a favoritos</button>`;
+            }
+
+            fila.appendChild(celda);
+            contador++;
          }
          tabla.appendChild(fila);
      }
@@ -201,19 +190,22 @@ function cargarProductos(categoria){
          item.classList.add('casilla-producto');//Para estilos, los mismos que si fuera tabla
          
          item.innerHTML = `
-             <img src="${producto.image}" alt="${producto.title}">
-             <p>${producto.title}</p>
-             <p>${producto.price}€</p>
-             <article value=${producto}>
-                <label for='anadir-carrito'>Unidades</label>
-                <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
-                <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                <button class="favoritos-boton">Añadir a favoritos</button>
-                <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
-                <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
-                <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
-             </article>
+            <img src="${producto.image}" alt="${producto.title}">
+            <p>${producto.title}</p>
+            <p>${producto.price}€</p>
+            <label for='anadir-carrito'>Unidades</label>
+            <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
+            <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                
+            <button onclick='likePulsado(${producto.id})' class="gusta-boton">Me gusta</button>
+            <button onclick='dislikePulsado(${producto.id})'class="no-gusta-boton">No me gusta</button>
+            <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
          `;
-         lista.appendChild(item);
+        if(esFavorito(producto.id)){
+            item.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
+        }else{
+            item.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton">Añadir a favoritos</button>`;
+        }
+        lista.appendChild(item);
      });
      productosSection.appendChild(lista);
  }
@@ -246,25 +238,26 @@ function cargarProductos(categoria){
      .then(res=>res.json())
      .then(producto=>{
          //Creo la estructura de la ficha del producto
-         let ficha = document.createElement('article');
-         ficha.setAttribute('class','detalles-producto');
-         ficha.innerHTML = `
-         <img src="${producto.image}" alt="${producto.title}">
-         <h2>${producto.title}</h2>
-         <p>Categoria: ${producto.category}</p>
-         <p>${producto.description}</p>
-         <p>${producto.price}€</p>
-         <article value=${producto}>
+        let ficha = document.createElement('article');
+        ficha.setAttribute('class','detalles-producto');
+        ficha.innerHTML = `
+        <img src="${producto.image}" alt="${producto.title}">
+        <h2>${producto.title}</h2>
+        <p>Categoria: ${producto.category}</p>
+        <p>${producto.description}</p>
+        <p>${producto.price}€</p>
             <label for='anadir-carrito'>Unidades</label>
             <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
             <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>
-            <button class="favoritos-boton">Añadir a favoritos</button>
-            <button onclick='likePulsado()' class="gusta-boton">Me gusta</button>
-            <button onclick='dislikePulsado()'class="no-gusta-boton">No me gusta</button>
-            <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
-         </article>
-         `;
-         productosSection.appendChild(ficha);
+            <button onclick='likePulsado(${producto.id})' class="gusta-boton">Me gusta</button>
+            <button onclick='dislikePulsado(${producto.id})'class="no-gusta-boton">No me gusta</button>
+        `;
+        if(esFavorito(producto.id)){
+            ficha.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
+        }else{
+            ficha.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton">Añadir a favoritos</button>`;
+        }
+        productosSection.appendChild(ficha);
      }
  )
  }
@@ -303,8 +296,74 @@ function anadirCarrito(productoID){
         alert('Primero inicia sesión');
     }
 }
-//----------------------------------------------
 
+function favPulsado(boton, productoID){
+    //Por comodidad, voy a eliminar esta clase en todos los botones de favoritos, se la añado cuando corresponda
+    if(boton.classList.contains('fav')){
+        boton.classList.remove('fav');
+    }
+    //Compruebo si hay usuario logeado
+    let usuarioLogeado = JSON.parse(localStorage.getItem('usuarioLogeado'));
+    if(usuarioLogeado){
+        //Compruebo si en localstorage hay ya una lista de favoritos
+        let favoritos = JSON.parse(localStorage.getItem('favoritos'));
+        //Si no hay favotitos creo el array de objetos. Cada objeto es el nombre del usuario y el array de productos favoritos
+        if(favoritos==null){
+            favoritos=[
+                {
+                    usuario: usuarioLogeado.username,
+                    productos: [productoID]
+                }
+            ];
+            localStorage.setItem('favoritos',JSON.stringify(favoritos));
+            boton.innerHTML='En tu lista de favoritos';
+            boton.classList.add('fav');
+        }else{
+            //Compruebo si el usuarioLogueado ya tiene el producto en favoritos
+            let objetoUsuarioEncontrado = favoritos.find(f=>f.usuario==usuarioLogeado.username);//Los cambios que haga en objetoUsuarioEncontrado afectan al array original de favoritos
+            if(objetoUsuarioEncontrado){
+                //Compruebo si el usuario logueado ya tiene ese producto en favoritos
+                let posicion = objetoUsuarioEncontrado.productos.indexOf(productoID);//indexOf devuelve la posición de un elemento en un array, si no lo encuentra devuelve -1
+                if(posicion>=0){
+                    //Si lo tiene lo elimino el producto de favoritos
+                    objetoUsuarioEncontrado.productos.splice(posicion,1);//splice elimina un elemento de un array a partir de un índice
+                    localStorage.setItem('favoritos',JSON.stringify(favoritos));
+                    boton.innerHTML='Añadir a favoritos';
+                }else{
+                    //Si no lo tiene, lo añado
+                    objetoUsuarioEncontrado.productos.push(productoID);
+                    localStorage.setItem('favoritos',JSON.stringify(favoritos));
+                    boton.innerHTML='En tu lista de favoritos';
+                    boton.classList.add('fav');
+                }
+            }else{//Si no tiene favoritos, añado a favoritos un nuevo objeto con su nombre y el id del producto
+                favoritos.push({
+                    usuario: usuarioLogeado.username,
+                    productos: [productoID]
+                });
+                localStorage.setItem('favoritos',JSON.stringify(favoritos));
+                boton.innerHTML='En tu lista de favoritos';
+                boton.classList.add('fav');
+            }
+        }
+    }else{
+        alert('Primero inicia sesión');
+    }    
+}
 
-
-
+function esFavorito(productoID){
+    let usuarioLogeado = JSON.parse(localStorage.getItem('usuarioLogeado'));
+    if(usuarioLogeado){
+        let favoritos = JSON.parse(localStorage.getItem('favoritos'));
+        if(favoritos){
+            let objetoUsuarioEncontrado = favoritos.find(f=>f.usuario==usuarioLogeado.username);
+            if(objetoUsuarioEncontrado){
+                let posicion = objetoUsuarioEncontrado.productos.indexOf(productoID);
+                if(posicion>=0){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}

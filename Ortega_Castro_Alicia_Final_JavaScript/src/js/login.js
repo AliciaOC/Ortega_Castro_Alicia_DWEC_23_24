@@ -23,9 +23,9 @@ document.getElementById('login-form').addEventListener('submit', async function(
         //Si no encontró el usuario en la api, entonces busco en el localStorage
         if(!usuarioApi){
             let usuariosLocales=JSON.parse(localStorage.getItem('usuarios'));
-            let usuarioLocal=usuariosLocales.find(usuario=>usuario.nombre==nombreIntroducido && usuario.password==passwordIntroducido);
+            let usuarioLocal=usuariosLocales.find(usuario=>usuario.username==nombreIntroducido && usuario.password==passwordIntroducido);
             if(usuarioLocal){
-                alert('Hola de nuevo, '+usuarioLocal.nombre+'!');
+                alert('Hola de nuevo, '+usuarioLocal.username+'!');
                 //Guardo en localstorage el usuario que ha iniciado sesión 
                 localStorage.setItem('usuarioLogeado', JSON.stringify(usuarioLocal));
             }else{
@@ -44,7 +44,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
 });
 }else{
     alert(`Ya has iniciado sesión, ${
-        JSON.parse(localStorage.getItem('usuarioLogeado')).nombre
+        JSON.parse(localStorage.getItem('usuarioLogeado')).username
     }`);
     window.location.href='index.html';}
 

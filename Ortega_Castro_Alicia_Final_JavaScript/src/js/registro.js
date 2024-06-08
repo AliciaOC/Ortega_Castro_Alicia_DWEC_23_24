@@ -10,7 +10,7 @@ function registroUsuario(){
     let passwordIntroducido = document.getElementById('password').value;
     let usuariosLocales=JSON.parse(localStorage.getItem('usuarios'));
     if(usuariosLocales){
-        let usuario=usuariosLocales.find(usuario=>usuario.nombre==nombreIntroducido);
+        let usuario=usuariosLocales.find(usuario=>usuario.username==nombreIntroducido);
         if(usuario){
          return false;
         }
@@ -27,7 +27,7 @@ function registroUsuario(){
         }
     })
     //Si no existe en la api ni en el localStorage, lo guardo en el localStorage
-    usuariosLocales.push({nombre:nombreIntroducido, password:passwordIntroducido});
+    usuariosLocales.push({username:nombreIntroducido, password:passwordIntroducido});
     localStorage.setItem('usuarios', JSON.stringify(usuariosLocales));
     return true;
 }
