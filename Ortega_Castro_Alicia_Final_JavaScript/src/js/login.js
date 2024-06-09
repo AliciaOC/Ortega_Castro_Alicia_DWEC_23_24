@@ -1,10 +1,8 @@
 //----------Variables y Constantes
 const URL_USUARIOS='https://fakestoreapi.com/users';
 
-
-
 //----------Eventos
-//este if-else entra en acción en cuanto entra en login.html
+//este if-else entra en acción en cuanto entra en login.html, si ya hay un usuario logeado, no le deja interactuar con esta página y le redirige a index.html
 if(!localStorage.getItem('usuarioLogeado')){
 document.getElementById('login-form').addEventListener('submit', async function(event) { //async es por el await
     event.preventDefault();
@@ -46,5 +44,6 @@ document.getElementById('login-form').addEventListener('submit', async function(
     alert(`Ya has iniciado sesión, ${
         JSON.parse(localStorage.getItem('usuarioLogeado')).username
     }`);
-    window.location.href='index.html';}
+    window.location.href='index.html';
+}
 

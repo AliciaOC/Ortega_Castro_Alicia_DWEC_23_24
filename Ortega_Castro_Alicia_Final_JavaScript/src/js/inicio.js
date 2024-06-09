@@ -94,247 +94,189 @@ function cargarCategoriasNav(){
 //funciones de productos
 function cargarProductos(categoria){
     //Reviso si los form de orden y vista están vacíos para volver a ponerles su contenido. Se vacían cuando se carga la ficha de un producto
-     if(formOrden.innerHTML==""){//Si está vacío, lo relleno
-         formOrden.innerHTML=` 
-         <label for="ordenar">Ordenar por precio:</label>
-         <select name="ordenar" id="ordenar">
+    if(formOrden.innerHTML==""){//Si está vacío, lo relleno
+        formOrden.innerHTML=` 
+        <label for="ordenar">Ordenar por precio:</label>
+        <select name="ordenar" id="ordenar">
            <option value="ascendente" selected>Ascendente</option>
            <option value="descendente">Descendente</option>
-         </select>`;
-     } 
-     if(formVistas.innerHTML==""){//Si está vacío, lo relleno
-         formVistas.innerHTML=`
-         <label for="vista">Vista:</label>
-         <select name="vista" id="vista">
+        </select>`;
+    } 
+    if(formVistas.innerHTML==""){//Si está vacío, lo relleno
+        formVistas.innerHTML=`
+        <label for="vista">Vista:</label>
+        <select name="vista" id="vista">
            <option value="tabla">Tabla</option>
            <option value="lista">Lista</option>
-         </select>`;
-     }
+        </select>`;
+    }
  
-     //Ya sí: cargo los productos dependiendo de si hay categoría seleccionada o no
-     if(categoria==null){//Si no se le pasa ninguna categoría, carga todos los productos
-     fetch(URL_PRODUCTOS) 
-         .then(res=>res.json())
-         .then(productos=>mostrarproductos(productos));
-     }else{//Si se le pasa una categoría, carga los productos de esa categoría 
-         fetch(`${URL_PRODUCTOS}/category/${categoria}`)
-         .then(res=>res.json())
-         .then(productos=>mostrarproductos(productos));
-     }  
- }
+    //Ya sí: cargo los productos dependiendo de si hay categoría seleccionada o no
+    if(categoria==null){//Si no se le pasa ninguna categoría, carga todos los productos
+    fetch(URL_PRODUCTOS) 
+        .then(res=>res.json())
+        .then(productos=>mostrarproductos(productos));
+    }else{//Si se le pasa una categoría, carga los productos de esa categoría 
+        fetch(`${URL_PRODUCTOS}/category/${categoria}`)
+        .then(res=>res.json())
+        .then(productos=>mostrarproductos(productos));
+    }  
+}
  
- function mostrarproductos(productos){
-     //Ordenar los productos por precio
-     if(orden=="ascendente"){
-         productos.sort((a,b)=>a.price-b.price);
-     }else if(orden=="descendente"){
-         productos.sort((a,b)=>b.price-a.price);
-     }
-     //Mostrar los productos en la vista seleccionada
-     if(vista == "tabla"){
-         distribucionTabla(productos);
-     }else if(vista == "lista"){
-         distribucionLista(productos);
-     }
- }
+function mostrarproductos(productos){
+    //Ordenar los productos por precio
+    if(orden=="ascendente"){
+        productos.sort((a,b)=>a.price-b.price);
+    }else if(orden=="descendente"){
+        productos.sort((a,b)=>b.price-a.price);
+    }
+    //Mostrar los productos en la vista seleccionada
+    if(vista == "tabla"){
+        distribucionTabla(productos);
+    }else if(vista == "lista"){
+        distribucionLista(productos);
+    }
+}
+
+function rellenarBotonesProducto(elemento, productoID){
+    let numLikes = JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==productoID).numLikes;
+    let numDislikes = JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==productoID).numDislikes;
+    elemento.innerHTML+=                
+    `
+        <label for='anadir-carrito'>Unidades</label>
+        <input type='number' id='unidades${productoID}' name='unidades' min='1' max='10' value='1'>
+        <button onclick='anadirCarrito(${productoID})' class="anadir-carrito">Añadir al carrito</button>                    
+    `;
+    if(formOrden.innerHTML!=""){
+        elemento.innerHTML+=`<button onclick='mostrarDetallesProducto(${productoID})' class="detalles-boton">Ver detalles</button>`;
+    }
+            
+    if(esFavorito(productoID)){
+        elemento.innerHTML+=`<button onclick='favPulsado(this, ${productoID})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
+    }else{
+        elemento.innerHTML+=`<button onclick='favPulsado(this, ${productoID})' class="favoritos-boton">Añadir a favoritos</button>`;
+    }
+    
+    //miro si el usuario logueado esta en la lista de likeObjeto para aplicar o no la clase like-pulsado
+    let usuarioLogeado = JSON.parse(localStorage.getItem('usuarioLogeado'));
+    if(usuarioLogeado){
+        if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==productoID).usuarios.includes(usuarioLogeado.username)){
+            elemento.innerHTML+=`<button onclick='likePulsado(this, ${productoID})' class="gusta-boton" disabled>Me gusta (${numLikes})</button>`;
+        }else if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==productoID).usuarios.includes(usuarioLogeado.username)){
+            elemento.innerHTML+=`<button onclick='likePulsado(this, ${productoID})' class="gusta-boton like-pulsado">Me gusta (${numLikes})</button>`;
+        }else{
+             elemento.innerHTML+=`<button onclick='likePulsado(this, ${productoID})' class="gusta-boton">Me gusta (${numLikes})</button>`;
+        }
+                
+        //miro si el usuario logueado esta en la lista de dislikeObjeto para aplicar o no la clase dislike-pulsado
+        if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==productoID).usuarios.includes(usuarioLogeado.username)){
+            elemento.innerHTML+=`<button onclick='dislikePulsado(this, ${productoID})' class="no-gusta-boton" disabled>No me gusta (${numLikes})</button>`;
+        }else if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==productoID).usuarios.includes(usuarioLogeado.username)){
+            elemento.innerHTML+=`<button onclick='dislikePulsado(this, ${productoID})' class="no-gusta-boton dislike-pulsado">No me gusta (${numDislikes})</button>`;
+        }else{
+            elemento.innerHTML+=`<button onclick='dislikePulsado(this, ${productoID})' class="no-gusta-boton">No me gusta (${numDislikes})</button>`;
+        }
+    }else{//Si no está logueado las funciones le pedirán iniciar sesión cuando pulse los botones
+        elemento.innerHTML+=`
+            <button onclick='likePulsado(this, ${productoID})' class="gusta-boton">Me gusta (${numLikes})</button>
+            <button onclick='dislikePulsado(this, ${productoID})'class="no-gusta-boton">No me gusta (${numDislikes})</button>
+        `;
+    }
+}
+
+function distribucionTabla(productos){
+    //borro por si había ya algo
+    productosSection.innerHTML="";
  
- function distribucionTabla(productos){
-     //borro por si había ya algo
-     productosSection.innerHTML="";
+    let tabla = document.createElement('table');
+    let numFilas= Math.ceil(productos.length/4);//hay 20 productos en total, lo divido así para que haga filas completas. Y en la categoria de menos productos hay 4
  
-     let tabla = document.createElement('table');
-     let numFilas= Math.ceil(productos.length/4);//hay 20 productos en total, lo divido así para que haga filas completas. Y en la categoria de menos productos hay 4
+    let contador=0;//Este contador es para llevar la posición del array de productos durante todo el bucle
  
-     let contador=0;//Este contador es para llevar la posición del array de productos durante todo el bucle
- 
-     for(let i=0;i<numFilas;i++){
-         let fila = document.createElement('tr');
-         for(let j=0;j<4;j++){
-             //Si no hay más productos, salgo del bucle (en las categorias de electronica y ropa de mujer hace falta)
-             if(contador>=productos.length){
-                 break;
-             }
- 
-             let celda = document.createElement('td');
-             let producto = productos[contador];
-             celda.classList.add('casilla-producto');//Para estilos
-             let numLikes = JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).numLikes;
-             let numDislikes = JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).numDislikes;
-             celda.innerHTML = `
+    for(let i=0;i<numFilas;i++){
+        let fila = document.createElement('tr');
+        for(let j=0;j<4;j++){
+            //Si no hay más productos, salgo del bucle (en las categorias de electronica y ropa de mujer hace falta)
+            if(contador>=productos.length){
+                break;
+            }
+            let celda = document.createElement('td');
+            let producto = productos[contador];
+            celda.classList.add('casilla-producto');//Para estilos
+            celda.innerHTML = `
                 <img src="${producto.image}" alt="${producto.title}">
                 <p>${producto.title}</p>
                 <p>${producto.price}€</p>
-                <label for='anadir-carrito'>Unidades</label>
-                <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
-                <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                    
-                <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
-             `;
-            if(esFavorito(producto.id)){
-                celda.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
-            }else{
-                celda.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton">Añadir a favoritos</button>`;
-            }
-            //miro si el usuario logueado esta en la lista de likeObjeto para aplicar o no la clase like-pulsado
-            let usuarioLogeado = JSON.parse(localStorage.getItem('usuarioLogeado'));
-            if(usuarioLogeado){
-                if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                    celda.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton" disabled>Me gusta (${numLikes})</button>`;
-                }else if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                    celda.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton like-pulsado">Me gusta (${numLikes})</button>`;
-                }else{
-                    celda.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton">Me gusta (${numLikes})</button>`;
-                }
-                //miro si el usuario logueado esta en la lista de dislikeObjeto para aplicar o no la clase dislike-pulsado
-                if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                    celda.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton" disabled>No me gusta (${numLikes})</button>`;
-                }else if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                    celda.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton dislike-pulsado">No me gusta (${numDislikes})</button>`;
-                }else{
-                    celda.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton">No me gusta (${numDislikes})</button>`;
-                }
-            }else{
-                celda.innerHTML+=`
-                <button onclick='likePulsado(this, ${producto.id})' class="gusta-boton">Me gusta (${numLikes})</button>
-                <button onclick='dislikePulsado(this, ${producto.id})'class="no-gusta-boton">No me gusta (${numDislikes})</button>
                 `;
-            }
-
+            rellenarBotonesProducto(celda, producto.id);
             fila.appendChild(celda);
             contador++;
-         }
-         tabla.appendChild(fila);
-     }
-     productosSection.appendChild(tabla);    
- }
+        }
+        tabla.appendChild(fila);
+    }
+    productosSection.appendChild(tabla);    
+}
  
- function distribucionLista(productos){
-     productosSection.innerHTML="";
-     let lista = document.createElement('ul');
-     productos.forEach(producto => {
-         let item = document.createElement('li');
-         item.classList.add('casilla-producto');//Para estilos, los mismos que si fuera tabla
-         let numLikes = JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).numLikes;
-         let numDislikes = JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).numDislikes;
-         item.innerHTML = `
+function distribucionLista(productos){
+    productosSection.innerHTML="";
+    let lista = document.createElement('ul');
+    productos.forEach(producto => {
+        let item = document.createElement('li');
+        item.classList.add('casilla-producto');//Para estilos, los mismos que si fuera tabla
+        item.innerHTML = `
             <img src="${producto.image}" alt="${producto.title}">
             <p>${producto.title}</p>
             <p>${producto.price}€</p>
-            <label for='anadir-carrito'>Unidades</label>
-            <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
-            <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>                
-            <button onclick="mostrarDetallesProducto(${producto.id})" class="detalle-boton">Ver ficha del producto</button>
-         `;
-        if(esFavorito(producto.id)){
-            item.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
-        }else{
-            item.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton">Añadir a favoritos</button>`;
-        }
-        //miro si el usuario logueado esta en la lista de likeObjeto para aplicar o no la clase like-pulsado y lo mismo con dislike
-        let usuarioLogeado = JSON.parse(localStorage.getItem('usuarioLogeado'));
-        if(usuarioLogeado){
-            if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                item.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton disabled">Me gusta (${numDislikes})</button>`;
-            }else if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                item.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton like-pulsado">Me gusta (${numLikes})</button>`;
-            }else{
-                item.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton">Me gusta (${numLikes})</button>`;
-            }
-            if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                item.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton" disabled>No me gusta (${numLikes})</button>`;
-            }else if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                item.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton dislike-pulsado">No me gusta (${numDislikes})</button>`;
-            }else{
-                item.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton">No me gusta (${numDislikes})</button>`;
-            }
-        }else{
-            item.innerHTML+=`
-            <button onclick='likePulsado(this, ${producto.id})' class="gusta-boton">Me gusta (${numLikes})</button>
-            <button onclick='dislikePulsado(this, ${producto.id})'class="no-gusta-boton">No me gusta (${numDislikes})</button>
-            `;
-        }
-        
+        `;
+        rellenarBotonesProducto(item, producto.id);
         lista.appendChild(item);
-     });
-     productosSection.appendChild(lista);
- }
- 
- function comprobarFiltroCategoria(){
-     for (let boton of botonesCategorias) {
-         if(boton.classList.contains('categoria-seleccionada')){//contains devuelve true si la clase está en el elemento
-             let categoria= boton.innerHTML;
-             return categoria;
-         }
-     }
-     return false;
- }
- 
- function borrarFiltroCategoria(){
-     for (let boton of botonesCategorias) {
-         if(boton.classList.contains('categoria-seleccionada')){
-             boton.classList.remove('categoria-seleccionada');
-         }
-     }
- }
- 
- function mostrarDetallesProducto(id){
-     //Vacío el contenido del main
-     formOrden.innerHTML="";
-     formVistas.innerHTML="";
-     productosSection.innerHTML="";
-     //Cargo el producto
-     fetch(`${URL_PRODUCTOS}/${id}`)
-     .then(res=>res.json())
-     .then(producto=>{
-         //Creo la estructura de la ficha del producto
+    });
+    productosSection.appendChild(lista);
+}
+
+function mostrarDetallesProducto(id){
+    //Vacío el contenido del main
+    formOrden.innerHTML="";
+    formVistas.innerHTML="";
+    productosSection.innerHTML="";
+    //Cargo el producto
+    fetch(`${URL_PRODUCTOS}/${id}`)
+    .then(res=>res.json())
+    .then(producto=>{
+        //Creo la estructura de la ficha del producto
         let ficha = document.createElement('article');
         ficha.setAttribute('class','detalles-producto');
-        let numLikes = JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).numLikes;
-        let numDislikes = JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).numDislikes;
         ficha.innerHTML = `
-        <img src="${producto.image}" alt="${producto.title}">
-        <h2>${producto.title}</h2>
-        <p>Categoria: ${producto.category}</p>
-        <p>${producto.description}</p>
-        <p>${producto.price}€</p>
-            <label for='anadir-carrito'>Unidades</label>
-            <input type='number' id='unidades${producto.id}' name='unidades' min='1' max='10' value='1'>
-            <button onclick='anadirCarrito(${producto.id})' class="anadir-carrito">Añadir al carrito</button>
+            <img src="${producto.image}" alt="${producto.title}">
+            <h2>${producto.title}</h2>
+            <p>Categoria: ${producto.category}</p>
+            <p>${producto.description}</p>
+            <p>${producto.price}€</p>
         `;
-        if(esFavorito(producto.id)){
-            ficha.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
-        }else{
-            ficha.innerHTML+=`<button onclick='favPulsado(this, ${producto.id})' class="favoritos-boton">Añadir a favoritos</button>`;
-        }
-        //miro si el usuario logueado esta en la lista de likeObjeto para aplicar o no la clase like-pulsado y lo mismo con dislike
-        let usuarioLogeado = JSON.parse(localStorage.getItem('usuarioLogeado'));
-        if(usuarioLogeado){
-            if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                ficha.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton disabled">Me gusta (${numDislikes})</button>`;
-            }else if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                ficha.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton like-pulsado">Me gusta (${numLikes})</button>`;
-            }else{
-                ficha.innerHTML+=`<button onclick='likePulsado(this, ${producto.id})' class="gusta-boton">Me gusta (${numLikes})</button>`;
-            }
-            if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                ficha.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton" disabled>No me gusta (${numLikes})</button>`;
-            }else if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==producto.id).usuarios.includes(usuarioLogeado.username)){
-                ficha.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton dislike-pulsado">No me gusta (${numDislikes})</button>`;
-
-            }else{
-                ficha.innerHTML+=`<button onclick='dislikePulsado(this, ${producto.id})' class="no-gusta-boton">No me gusta (${numDislikes})</button>`;
-            }
-        }else{
-            ficha.innerHTML+=`
-            <button onclick='likePulsado(this, ${producto.id})' class="gusta-boton">Me gusta (${numLikes})</button>
-            <button onclick='dislikePulsado(this, ${producto.id})'class="no-gusta-boton">No me gusta (${numDislikes})</button>
-            `;
-        }
+        rellenarBotonesProducto(ficha, producto.id);
         productosSection.appendChild(ficha);
-     }
- )
- }
+    })
+}
+ 
+function comprobarFiltroCategoria(){
+    for (let boton of botonesCategorias) {
+        if(boton.classList.contains('categoria-seleccionada')){//contains devuelve true si la clase está en el elemento
+            let categoria= boton.innerHTML;
+            return categoria;
+        }
+    }
+    return false;
+}
+ 
+function borrarFiltroCategoria(){
+    for (let boton of botonesCategorias) {
+        if(boton.classList.contains('categoria-seleccionada')){
+            boton.classList.remove('categoria-seleccionada');
+        }
+    }
+}
 
- //Para añadir productos al carrito
+//Para añadir productos al carrito
 function anadirCarrito(productoID){
     if(localStorage.getItem('usuarioLogeado')!=null){
         let carrito = JSON.parse(localStorage.getItem('carrito'));
