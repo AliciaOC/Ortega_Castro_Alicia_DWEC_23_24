@@ -74,12 +74,6 @@
                 transform: scale(0.8);
             }
         }
-        .like-pulsado{
-            background-color: greenyellow;
-        }
-        .dislike-pulsado{
-            background-color: red;
-        }
 
     }
     .detalles-producto{
@@ -130,4 +124,11 @@ h1{
 .fav{
     background-color: rgb(255, 105, 130);
 
+}
+
+.like-pulsado{
+    background-color: greenyellow;
+}
+.dislike-pulsado{
+    background-color: red;
 }

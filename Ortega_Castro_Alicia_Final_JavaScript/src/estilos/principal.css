@@ -75,12 +75,6 @@
 #productos .casilla-producto .anadir-carrito:active {
   transform: scale(0.8);
 }
-#productos .casilla-producto .like-pulsado {
-  background-color: greenyellow;
-}
-#productos .casilla-producto .dislike-pulsado {
-  background-color: red;
-}
 #productos .detalles-producto {
   border: #c66000 3px solid;
   border-radius: 10px;
@@ -129,4 +123,12 @@ h1 {
 
 .fav {
   background-color: rgb(255, 105, 130);
+}
+
+.like-pulsado {
+  background-color: greenyellow;
+}
+
+.dislike-pulsado {
+  background-color: red;
 }/*# sourceMappingURL=principal.css.map */
