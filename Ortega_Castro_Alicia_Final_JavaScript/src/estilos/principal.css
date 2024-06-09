@@ -61,20 +61,6 @@
 #productos .casilla-producto img {
   max-width: 150px;
 }
-#productos .casilla-producto .anadir-carrito {
-  background-color: #c66000;
-  color: #fff;
-  padding: 0.4rem;
-  border-radius: 5px;
-  transition: transform 0.3s;
-}
-#productos .casilla-producto .anadir-carrito:hover {
-  background-color: #f4d8b9;
-  color: #000;
-}
-#productos .casilla-producto .anadir-carrito:active {
-  transform: scale(0.8);
-}
 #productos .detalles-producto {
   border: #c66000 3px solid;
   border-radius: 10px;
@@ -131,4 +117,19 @@ h1 {
 
 .dislike-pulsado {
   background-color: red;
+}
+
+.anadir-carrito {
+  background-color: #c66000;
+  color: #fff;
+  padding: 0.4rem;
+  border-radius: 5px;
+  transition: transform 0.3s;
+}
+.anadir-carrito:hover {
+  background-color: #f4d8b9;
+  color: #000;
+}
+.anadir-carrito:active {
+  transform: scale(0.8);
 }/*# sourceMappingURL=principal.css.map */

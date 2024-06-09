@@ -8,12 +8,17 @@ function logout(){
                 localStorage.removeItem('usuarioLogeado');
                 localStorage.removeItem('carrito');
                 alert('Sesión cerrada');
-                window.location.href='index.html';
+                if(url.includes('/html/')){
+                    window.location.href='../index.html';
+                }
             }
         }else{
-        localStorage.removeItem('usuarioLogeado');
-        alert('Sesión cerrada');
-        window.location.href='index.html';
+            localStorage.removeItem('usuarioLogeado');
+            alert('Sesión cerrada');
+            let url=window.location.href;
+            if(url.includes('/html/')){
+                window.location.href='../index.html';
+            }
         }
     }else{
         alert('Primero inicia sesión ;)');
