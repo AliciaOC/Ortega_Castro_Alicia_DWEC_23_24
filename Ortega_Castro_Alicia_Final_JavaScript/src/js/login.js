@@ -26,6 +26,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
                 alert('Hola de nuevo, '+usuarioLocal.username+'!');
                 //Guardo en localstorage el usuario que ha iniciado sesión 
                 localStorage.setItem('usuarioLogeado', JSON.stringify(usuarioLocal));
+                window.location.href='./';
             }else{
                 alert('Usuario o contraseña incorrectos');
             }
@@ -33,7 +34,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
             alert('Hola de nuevo, '+usuarioApi.username+'!');
             //Guardo en localstorage el usuario que ha iniciado sesión
             localStorage.setItem('usuarioLogeado', JSON.stringify(usuarioApi));
-            window.location.href='index.html';
+            window.location.href='./';
         }
     } catch (error) {
         console.error('Error:', error);
@@ -44,6 +45,6 @@ document.getElementById('login-form').addEventListener('submit', async function(
     alert(`Ya has iniciado sesión, ${
         JSON.parse(localStorage.getItem('usuarioLogeado')).username
     }`);
-    window.location.href='index.html';
+    window.location.href='./';
 }
 

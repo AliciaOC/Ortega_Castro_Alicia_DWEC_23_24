@@ -34,6 +34,7 @@ function registroUsuario(){
 function mensajeRegistro(){
     if(registroUsuario()){
         alert('Usuario registrado correctamente');
+        window.location.href='./login.html';
     }else{
         alert('El usuario ya existe');
     }
