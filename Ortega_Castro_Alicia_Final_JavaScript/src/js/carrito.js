@@ -3,16 +3,12 @@ let sectionCarrito=document.getElementById('carrito');
 
 //LLamadas a las funciones
 cargarCarrito();
-
-if(localStorage.getItem('carrito')!=null){
-    cargarVaciarCarrito();
-}
 //-----------
 
 //Funciones
 function cargarCarrito(){
     let carrito= JSON.parse(localStorage.getItem('carrito'));
-    if(!carrito){
+    if(!carrito || carrito.length==0){
         document.getElementById('carrito').innerHTML=`<p>Carrito vacío</p>`;
     }else{
         sectionCarrito.innerHTML="";
@@ -31,14 +27,14 @@ function cargarCarrito(){
 
         //Luego los productos
         let tbody=document.createElement('tbody');
-        let total=0;//Para calcular el precio total del carrito
+        let total=0.00;//Para calcular el precio total del carrito
         carrito.forEach(producto => {
             let tr=document.createElement('tr');
             let td=document.createElement('td');
             td.innerHTML=producto.title;
             tr.appendChild(td);
             td=document.createElement('td');
-            td.innerHTML=producto.price;
+            td.innerHTML=parseFloat(producto.price).toFixed(2)+'€';
             tr.appendChild(td);
             td=document.createElement('td');
             let input=document.createElement('input');
@@ -53,9 +49,9 @@ function cargarCarrito(){
             td.appendChild(input);
             tr.appendChild(td);
             td=document.createElement('td');
-            producto.subtotal=parseFloat(producto.unidades)*parseFloat(producto.price);
-            producto.subtotal=parseFloat(producto.subtotal.toFixed(2));
-            td.innerHTML=`${producto.subtotal}€`;
+            producto.subtotal=parseInt(producto.unidades)*parseFloat(producto.price).toFixed(2);
+            producto.subtotal=(producto.subtotal).toFixed(2);
+            td.innerHTML=producto.subtotal+'€';
             tr.appendChild(td);
             td=document.createElement('td');
             let boton=document.createElement('button');
@@ -67,8 +63,9 @@ function cargarCarrito(){
             tr.appendChild(td);
             tbody.appendChild(tr);
             //Paso a numero el subtotal para poder sumarlo. Sino sale NaN
-            total+= producto.subtotal;
+            total+= parseFloat(producto.subtotal);
         });
+        total=total.toFixed(2);
         tabla.appendChild(tbody);
         sectionCarrito.appendChild(tabla);
         let p=document.createElement('p');
@@ -82,14 +79,5 @@ function eliminarProducto(id){
     let nuevoCarrito=carrito.filter(producto=>producto.id!=id);
     localStorage.setItem('carrito',JSON.stringify(nuevoCarrito));
     cargarCarrito();
-}
-
-function cargarVaciarCarrito(){
-    let boton=document.createElement('button');
-    boton.innerHTML='Vaciar carrito';
-    boton.onclick=()=>{
-        localStorage.removeItem('carrito');
-        cargarCarrito();
-    };
-    sectionCarrito.appendChild(boton);
+    carrito= JSON.parse(localStorage.getItem('carrito'));   
 }

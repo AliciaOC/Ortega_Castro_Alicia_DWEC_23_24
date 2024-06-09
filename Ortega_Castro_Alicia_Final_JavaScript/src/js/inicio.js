@@ -270,7 +270,7 @@ function anadirCarrito(productoID){
             carrito=[];
         }
         //Primero obtengo las unidades del producto del input que es hermano
-        let unidades = document.getElementById(`unidades${productoID}`).value;
+        let unidades = parseInt(document.getElementById(`unidades${productoID}`).value);
         //Busco el producto en el array de productos
         fetch(`${URL_PRODUCTOS}/${productoID}`)
         .then(res=>res.json())
@@ -279,7 +279,8 @@ function anadirCarrito(productoID){
             let productoEncontrado = carrito.find(p=>p.id==producto.id);
             if(productoEncontrado!=undefined){
                 //Si ya estaba, sumo las unidades
-                productoEncontrado.unidades+=parseInt(unidades);
+                productoEncontrado.unidades=parseInt(productoEncontrado.unidades);
+                productoEncontrado.unidades+=unidades;
                 localStorage.setItem('carrito',JSON.stringify(carrito));
                 alert('Nuevas unidades del producto añadidas al carrito');
             }else{
