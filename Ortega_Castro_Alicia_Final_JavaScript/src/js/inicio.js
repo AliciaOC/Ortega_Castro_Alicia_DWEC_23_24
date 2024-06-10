@@ -9,6 +9,7 @@ let formVistas = document.getElementById("form-vistas");
 let productosSection = document.getElementById("productos");
 let vista= document.getElementById("vista").value;
 let orden= document.getElementById("ordenar").value;
+let vistaDetalles=false;
 
 //----------------llamadas a funciones
 borrarFiltroCategoria();
@@ -20,20 +21,24 @@ creacionLikesDislikesObjetos();
 //---------------Eventos
 document.getElementById('enlace-productos').addEventListener('click', (event)=>{
     event.preventDefault();
+    vistaDetalles=false;
     if(comprobarFiltroCategoria()){
         borrarFiltroCategoria();
     }
+    productosSection.innerHTML="";
     cargarProductos();
 });
 
 //Para cambiar el orden
 document.getElementById('ordenar').addEventListener('click',()=>{
+    vistaDetalles=false;
     //Primer click para abrir las opciones, no lo tengo en cuenta pero necesito escucharlo para el segundo click
     //Segundo click para cambiar el orden
     document.getElementById('ordenar').addEventListener('click',()=>{
         //Reviso si ha cambiado el orden
         if(orden!=document.getElementById('ordenar').value){
             orden = document.getElementById('ordenar').value;
+            productosSection.innerHTML="";
             //miro si ha filtrado por categoria o no
             if(comprobarFiltroCategoria()){
                 cargarProductos(comprobarFiltroCategoria());
@@ -46,18 +51,20 @@ document.getElementById('ordenar').addEventListener('click',()=>{
 
 //Para cambiar la vista
 document.getElementById('vista').addEventListener('click',()=>{
+    vistaDetalles=false;
 //primer click para abrir las opciones
 //al segundo click puede que haya cambiado la vista
     document.getElementById('vista').addEventListener('click',()=>{
         //reviso si ha cambiado la vista
         if(vista!=document.getElementById('vista').value){
-        vista = document.getElementById('vista').value;
+            productosSection.innerHTML="";
+            vista = document.getElementById('vista').value;
         //miro si ha filtrado por categoria o no
-        if(comprobarFiltroCategoria()){
-            cargarProductos(comprobarFiltroCategoria());
-        }else{
-            cargarProductos();
-        }
+            if(comprobarFiltroCategoria()){
+                cargarProductos(comprobarFiltroCategoria());
+            }else{
+                cargarProductos();
+            }
         }
     });
 });
@@ -82,6 +89,8 @@ function cargarCategoriasNav(){
                 if(comprobarFiltroCategoria()){
                     borrarFiltroCategoria();
                 }
+                vistaDetalles=false;
+                productosSection.innerHTML="";
                 boton.classList.add('categoria-seleccionada');
                 cargarProductos(boton.innerHTML);
             });
@@ -92,48 +101,49 @@ function cargarCategoriasNav(){
 }
 
 //funciones de productos
-function cargarProductos(categoria){
-    //Reviso si los form de orden y vista están vacíos para volver a ponerles su contenido. Se vacían cuando se carga la ficha de un producto
-    if(formOrden.innerHTML==""){//Si está vacío, lo relleno
-        formOrden.innerHTML=` 
+function cargarProductos(categoria=null) {
+    // Reviso si los formularios de orden y vista están vacíos para volver a ponerles su contenido. Se vacían cuando se carga la ficha de un producto
+    if (formOrden.innerHTML == "") { // Si está vacío, lo relleno
+        formOrden.innerHTML = `
         <label for="ordenar">Ordenar por precio:</label>
         <select name="ordenar" id="ordenar">
            <option value="ascendente" selected>Ascendente</option>
            <option value="descendente">Descendente</option>
         </select>`;
-    } 
-    if(formVistas.innerHTML==""){//Si está vacío, lo relleno
-        formVistas.innerHTML=`
+    }
+    if (formVistas.innerHTML == "") { // Si está vacío, lo relleno
+        formVistas.innerHTML = `
         <label for="vista">Vista:</label>
         <select name="vista" id="vista">
            <option value="tabla">Tabla</option>
            <option value="lista">Lista</option>
         </select>`;
     }
- 
-    //Ya sí: cargo los productos dependiendo de si hay categoría seleccionada o no
+
+        //Ya sí: cargo los productos dependiendo de si hay categoría seleccionada o no
     if(categoria==null){//Si no se le pasa ninguna categoría, carga todos los productos
-    fetch(URL_PRODUCTOS) 
+        fetch(URL_PRODUCTOS) 
         .then(res=>res.json())
         .then(productos=>mostrarproductos(productos));
     }else{//Si se le pasa una categoría, carga los productos de esa categoría 
         fetch(`${URL_PRODUCTOS}/category/${categoria}`)
         .then(res=>res.json())
         .then(productos=>mostrarproductos(productos));
-    }  
+    } 
 }
  
-function mostrarproductos(productos){
-    //Ordenar los productos por precio
-    if(orden=="ascendente"){
-        productos.sort((a,b)=>a.price-b.price);
-    }else if(orden=="descendente"){
-        productos.sort((a,b)=>b.price-a.price);
+function mostrarproductos(productos) {
+    // Ordenar los productos por precio
+    if (orden == "ascendente") {
+        productos.sort((a, b) => a.price - b.price);
+    } else if (orden == "descendente") {
+        productos.sort((a, b) => b.price - a.price);
     }
-    //Mostrar los productos en la vista seleccionada
-    if(vista == "tabla"){
+
+    // Mostrar los productos en la vista seleccionada
+    if (vista == "tabla") {
         distribucionTabla(productos);
-    }else if(vista == "lista"){
+    } else if (vista == "lista") {
         distribucionLista(productos);
     }
 }
@@ -184,45 +194,49 @@ function rellenarBotonesProducto(elemento, productoID){
     }
 }
 
-function distribucionTabla(productos){
-    //borro por si había ya algo
-    productosSection.innerHTML="";
- 
-    let tabla = document.createElement('table');
-    let numFilas= Math.ceil(productos.length/4);//hay 20 productos en total, lo divido así para que haga filas completas. Y en la categoria de menos productos hay 4
- 
-    let contador=0;//Este contador es para llevar la posición del array de productos durante todo el bucle
- 
-    for(let i=0;i<numFilas;i++){
+function distribucionTabla(productos) {
+    let tabla = productosSection.querySelector('table');
+    if (!document.querySelector('table')) {
+        tabla = document.createElement('table');
+        productosSection.appendChild(tabla);
+    }
+
+    let numFilas = Math.ceil(productos.length / 4);
+    let contador = 0;
+
+    for (let i = 0; i < numFilas; i++) {
         let fila = document.createElement('tr');
-        for(let j=0;j<4;j++){
+        for (let j = 0; j < 4; j++) {
             //Si no hay más productos, salgo del bucle (en las categorias de electronica y ropa de mujer hace falta)
-            if(contador>=productos.length){
+            if (contador >= productos.length) {
                 break;
             }
             let celda = document.createElement('td');
             let producto = productos[contador];
-            celda.classList.add('casilla-producto');//Para estilos
+            celda.classList.add('casilla-producto');
             celda.innerHTML = `
                 <img src="${producto.image}" alt="${producto.title}">
                 <p>${producto.title}</p>
                 <p>${producto.price}€</p>
-                `;
+            `;
             rellenarBotonesProducto(celda, producto.id);
             fila.appendChild(celda);
             contador++;
         }
         tabla.appendChild(fila);
     }
-    productosSection.appendChild(tabla);    
 }
- 
-function distribucionLista(productos){
-    productosSection.innerHTML="";
-    let lista = document.createElement('ul');
+
+function distribucionLista(productos) {
+    let lista = productosSection.querySelector('ul');
+    if (!document.querySelector('ul')) {
+        lista = document.createElement('ul');
+        productosSection.appendChild(lista);
+    }
+
     productos.forEach(producto => {
         let item = document.createElement('li');
-        item.classList.add('casilla-producto');//Para estilos, los mismos que si fuera tabla
+        item.classList.add('casilla-producto');
         item.innerHTML = `
             <img src="${producto.image}" alt="${producto.title}">
             <p>${producto.title}</p>
@@ -231,10 +245,10 @@ function distribucionLista(productos){
         rellenarBotonesProducto(item, producto.id);
         lista.appendChild(item);
     });
-    productosSection.appendChild(lista);
 }
 
 function mostrarDetallesProducto(id){
+    vistaDetalles=true;
     //Vacío el contenido del main
     formOrden.innerHTML="";
     formVistas.innerHTML="";
