@@ -1,7 +1,7 @@
 {
-  "name": "final-javascript",
+  "name": "ortega_castro_alicia_final_jquery",
   "version": "1.0.0",
-  "description": "Proyecto final de JavaScript",
+  "description": "trabajo final de jquery para DWEC",
   "scripts": {
     "desarrollo": "parcel src/index.html --dist-dir desarrollo",
     "produccion": "parcel build src/index.html --public-url './' --dist-dir produccion",
@@ -14,11 +14,10 @@
     "url": "git+https://github.com/AliciaOC/Ortega_Castro_Alicia_DWEC_23_24.git"
   },
   "keywords": [
-    "javascript",
-    "tienda",
-    "ajax"
+    "gatos",
+    "jquery"
   ],
-  "author": "Alicia",
+  "author": "Alicia Ortega Castro",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/AliciaOC/Ortega_Castro_Alicia_DWEC_23_24/issues"
