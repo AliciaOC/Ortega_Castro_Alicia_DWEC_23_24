@@ -1,0 +1,49 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande";
+}
+
+header {
+  background-color: rgb(120, 193, 10);
+  color: rgb(63, 6, 24);
+  padding: 10px;
+}
+header h5 {
+  margin: 2rem;
+  text-align: center;
+  font-size: large;
+}
+
+header nav {
+  display: flex;
+  justify-content: center;
+  margin: 1rem;
+}
+
+header nav button {
+  margin: 1rem;
+  color: black;
+  background-color: white;
+  border: solid 1px black;
+  border-radius: 5px;
+  padding: 1rem;
+}
+header nav button:hover {
+  background-color: rgb(203, 30, 76);
+  scale: 1.1;
+  color: white;
+}
+
+header nav a {
+  text-decoration: none;
+  color: black;
+  margin: 1rem;
+  padding: 1rem;
+}
+
+header nav a:hover {
+  color: rgb(203, 30, 76);
+  scale: 1.1;
+}

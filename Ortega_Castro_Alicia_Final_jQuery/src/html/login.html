@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inicio de Sesión</title>
+    <script
+      src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      defer
+    ></script>
+    <script src="../js/login.js" defer></script>
+    <script src="../js/main.js" defer></script>
+    <link rel="stylesheet" href="../css/main.css" />
+  </head>
+  <body>
+    <header>
+      <h5>Los reyes de internet: Gatos</h5>
+      <nav id="menu">
+        <a id="enlace-inicio" href="../index.html">Gatitos</a>
+        <a id="login-enlace" href="#">Iniciar sesión</a>
+        <button id="logout" onclick="logout()">Cerrar sesión</button>
+      </nav>
+    </header>
+    <h1>Inicio de Sesión</h1>
+    <form id="loginForm">
+      <label for="nombreUsuario">Nombre de usuario:</label>
+      <input type="text" id="nombreUsuario" name="nombreUsuario" required />
+      <label for="contrasena">Contraseña:</label>
+      <input type="password" id="password" name="password" required />
+      <button class="loginButton" class="boton" onclick="iniciarSesion()">
+        Iniciar sesión
+      </button>
+    </form>
+    <p>¿No tienes una cuenta?:</p>
+    <a href="registro.html">Regístrate</a>
+  </body>
+</html>
