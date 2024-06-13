@@ -1,4 +1,13 @@
+//Eventos
+$('#registroButton').click(function(event){
+    event.preventDefault();
+    registrarUsuario();
 
+});
+$('#loginButton').click(function(event){
+    event.preventDefault();
+    iniciarSesion();
+});
 
 //--------Funciones
 function iniciarSesion(){
@@ -53,7 +62,7 @@ function registrarUsuario(){
     usuarios.push(usuario);
     localStorage.setItem('usuarios', JSON.stringify(usuarios));
     alert('Usuario registrado correctamente');
-    window.location.href = '/html/login.html';
+    window.location.href = './login.html';
 }
 
 function logout(){
