@@ -1,5 +1,5 @@
 const URL_RAZAS_DATOS='https://catfact.ninja/breeds';
-
+const URL_FOTOS="https://api.thecatapi.com/v1/images/search?breed_ids={breed.id}";
 
 //Llamadas a las funciones
 obtenerRazas();
@@ -65,7 +65,25 @@ function obtenerRazas() {
 }
 
 function obtenerImagenes(razas){
-    const URL_FOTOS="https://api.thecatapi.com/v1/images/search?breed_ids={breed.id}";
-
+    //Voy a recorrer razas para sacar los id y así obtener las imagenes. Las imagenes las voy a meter en el array de objetos razas con la key imagen
+    let solicitud=function(){
+        for (let i = 0; i < razas.length; i++) {
+            let idRaza = razas[i].id;
+            let url = URL_FOTOS.replace('{breed.id}', idRaza);
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (respuesta) {
+                    razas[i].imagen = respuesta[0].url;
+                },
+                error: function (error) {
+                    console.error(error);
+                }
+            });
+        }
+    }
+    $.when(solicitud).done(function(){
+        mostrarRazas(razas);
+    });
 }
 

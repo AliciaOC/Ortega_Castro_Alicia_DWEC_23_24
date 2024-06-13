@@ -23,6 +23,22 @@
       </nav>
     </header>
     <main>
+      <!--ordenar ascendente o descendente-->
+      <form id="form-orden">
+        <label for="ordenar">Ordenar alfabéticamente:</label>
+        <select name="ordenar" id="ordenar">
+          <option value="ascendente" selected>Ascendente</option>
+          <option value="descendente">Descendente</option>
+        </select>
+      </form>
+      <!--vista en tabla o como lista-->
+      <form id="form-vistas">
+        <label for="vista">Vista:</label>
+        <select name="vista" id="vista">
+          <option value="tabla">Tabla</option>
+          <option value="lista">Lista</option>
+        </select>
+      </form>
       <section id="contenidoSection"></section>
     </main>
   </body>
