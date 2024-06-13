@@ -74,30 +74,35 @@ document.getElementById('vista').addEventListener('click',()=>{
 
 //de la categoría del nav bar de index.html
 function cargarCategoriasNav(){
-    fetch(URL_CATEGORIAS)
-    .then(response => response.json())
-    .then(categorias => {
-        // Recorrer cada categoría y crear un boton para cada una
-        categorias.forEach(categoria => {
-            // Crear un nuevo elemento <button>
-            let boton = document.createElement('button');
-            boton.classList.add('categoria-boton');
-            // Asignar el nombre de la categoría
-            boton.innerHTML = categoria;
-            // Agregar un evento al botón con click, se ejecuta la funcion cargarProductos con el nombre de la categoría
-            boton.addEventListener('click', () => {
-                if(comprobarFiltroCategoria()){
-                    borrarFiltroCategoria();
-                }
-                vistaDetalles=false;
-                productosSection.innerHTML="";
-                boton.classList.add('categoria-seleccionada');
-                cargarProductos(boton.innerHTML);
+    try{
+        fetch(URL_CATEGORIAS)
+        .then(response => response.json())
+        .then(categorias => {
+            // Recorrer cada categoría y crear un boton para cada una
+            categorias.forEach(categoria => {
+                // Crear un nuevo elemento <button>
+                let boton = document.createElement('button');
+                boton.classList.add('categoria-boton');
+                // Asignar el nombre de la categoría
+                boton.innerHTML = categoria;
+                // Agregar un evento al botón con click, se ejecuta la funcion cargarProductos con el nombre de la categoría
+                boton.addEventListener('click', () => {
+                    if(comprobarFiltroCategoria()){
+                        borrarFiltroCategoria();
+                    }
+                    vistaDetalles=false;
+                    productosSection.innerHTML="";
+                    boton.classList.add('categoria-seleccionada');
+                    cargarProductos(boton.innerHTML);
+                });
+                // Agregar el botón al nav de categorías
+                categoriasNav.appendChild(boton);
             });
-            // Agregar el botón al nav de categorías
-            categoriasNav.appendChild(boton);
-        });
-    })
+        })
+    }catch(error){
+        console.log(error);
+        alert('Ha habido un error al cargar las categorías, inténtelo de nuevo más tarde');
+    }
 }
 
 //funciones de productos
@@ -121,15 +126,20 @@ function cargarProductos(categoria=null) {
     }
 
         //Ya sí: cargo los productos dependiendo de si hay categoría seleccionada o no
-    if(categoria==null){//Si no se le pasa ninguna categoría, carga todos los productos
-        fetch(URL_PRODUCTOS) 
-        .then(res=>res.json())
-        .then(productos=>mostrarproductos(productos));
-    }else{//Si se le pasa una categoría, carga los productos de esa categoría 
-        fetch(`${URL_PRODUCTOS}/category/${categoria}`)
-        .then(res=>res.json())
-        .then(productos=>mostrarproductos(productos));
-    } 
+    try{
+        if(categoria==null){//Si no se le pasa ninguna categoría, carga todos los productos
+            fetch(URL_PRODUCTOS) 
+            .then(res=>res.json())
+            .then(productos=>mostrarproductos(productos));
+        }else{//Si se le pasa una categoría, carga los productos de esa categoría 
+            fetch(`${URL_PRODUCTOS}/category/${categoria}`)
+            .then(res=>res.json())
+            .then(productos=>mostrarproductos(productos));
+        } 
+    }catch(error){
+        console.error(error);
+        alert('Ha habido un error al cargar los productos, inténtelo de nuevo más tarde');
+    }
 }
  
 function mostrarproductos(productos) {
@@ -254,22 +264,27 @@ function mostrarDetallesProducto(id){
     formVistas.innerHTML="";
     productosSection.innerHTML="";
     //Cargo el producto
-    fetch(`${URL_PRODUCTOS}/${id}`)
-    .then(res=>res.json())
-    .then(producto=>{
-        //Creo la estructura de la ficha del producto
-        let ficha = document.createElement('article');
-        ficha.setAttribute('class','detalles-producto');
-        ficha.innerHTML = `
-            <img src="${producto.image}" alt="${producto.title}">
-            <h2>${producto.title}</h2>
-            <p>Categoria: ${producto.category}</p>
-            <p>${producto.description}</p>
-            <p>${producto.price}€</p>
-        `;
-        rellenarBotonesProducto(ficha, producto.id);
-        productosSection.appendChild(ficha);
-    })
+    try{
+        fetch(`${URL_PRODUCTOS}/${id}`)
+        .then(res=>res.json())
+        .then(producto=>{
+            //Creo la estructura de la ficha del producto
+            let ficha = document.createElement('article');
+            ficha.setAttribute('class','detalles-producto');
+            ficha.innerHTML = `
+                <img src="${producto.image}" alt="${producto.title}">
+                <h2>${producto.title}</h2>
+                <p>Categoria: ${producto.category}</p>
+                <p>${producto.description}</p>
+                <p>${producto.price}€</p>
+            `;
+            rellenarBotonesProducto(ficha, producto.id);
+            productosSection.appendChild(ficha);    
+        })
+    }catch(error){
+        console.error(error);
+        alert('Ha habido un error al cargar los detalles del producto, inténtelo de nuevo más tarde');
+    }
 }
  
 function comprobarFiltroCategoria(){

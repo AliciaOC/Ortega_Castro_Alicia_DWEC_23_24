@@ -18,14 +18,19 @@ function registroUsuario(){
         usuariosLocales=[];
     }
    //También voy a mirar a ver si el usuario existe en la api
-    fetch('https://fakestoreapi.com/users')
-    .then(respuesta=>respuesta.json())
-    .then(usuariosApi=> { 
-        let usuarioApiEncontrado=usuariosApi.find(usuario=>usuario.username==nombreIntroducido);
-        if(usuarioApiEncontrado){
-            return false;
-        }
-    })
+   try{
+        fetch('https://fakestoreapi.com/users')
+        .then(respuesta=>respuesta.json())
+        .then(usuariosApi=> { 
+            let usuarioApiEncontrado=usuariosApi.find(usuario=>usuario.username==nombreIntroducido);
+            if(usuarioApiEncontrado){
+                return false;
+            }
+        })
+    }catch(error){
+        console.error('Error:', error);
+        alert('Ocurrió un error al intentar registrarse');
+    }
     //Si no existe en la api ni en el localStorage, lo guardo en el localStorage
     usuariosLocales.push({username:nombreIntroducido, password:passwordIntroducido});
     localStorage.setItem('usuarios', JSON.stringify(usuariosLocales));
