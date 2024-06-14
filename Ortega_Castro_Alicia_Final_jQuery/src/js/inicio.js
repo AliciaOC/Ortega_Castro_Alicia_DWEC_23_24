@@ -4,6 +4,7 @@ const URL_FOTOS="https://api.thecatapi.com/v1/images/search?breed_ids={breed.id}
 
 let orden=$('#ordenar').val();
 let vista=$('#vista').val();
+
 //------------------------Eventos
 //Evento para el cambio de orden
 $('#ordenar').change(function(){
@@ -19,11 +20,11 @@ $('#vista').change(function(){
 
 // -----------------------Llamadas a las funciones
 // Voy a guardar la información que necesito para el inicio (razas, id razas y foto) en localStorage en 'gatos'. LocalStorage es más rápido que hacer llamadas AJAX y así no tengo que estar pendiente de la asincronía
-if (localStorage.getItem('gatos') === null) {
+if (JSON.parse(localStorage.getItem('gatos')) == null){
     obtenerRazas();
     //en este punto el array aún no está completo, por la asíncronía de las llamadas AJAX, pero se guardará en localStorage cuando esté completo en la función obtenerImagenes, después pasa a mostrarRazas
 }else{
-    mostrarRazas();//me ahorro las dos primeras funciones
+    mostrarRazas();//me ahorro las dos primseras funciones
 }
 
 // --------------------Funciones
@@ -77,7 +78,9 @@ async function obtenerRazas() {
                 if (razas1[i] == razas2[j].raza) {
                     razasArray.push({
                         raza: razas2[j].raza,
-                        id: razas2[j].id
+                        id: razas2[j].id,
+                        likes: 0,
+                        dislikes: 0
                     });
                 }
             }
@@ -94,7 +97,10 @@ async function obtenerImagenes(razas) {
             url: url,
             type: 'GET',
             success: function (respuesta) {
-                raza.imagen = respuesta[0].url;
+                //voy a guardar las imagenes de la raza
+                let imagenes = respuesta.map(imagen => imagen.url);
+                raza.imagenes = imagenes;
+
             },
             error: function (error) {
                 console.error(error);
@@ -151,53 +157,89 @@ function mostrarRazas() {
     }
 }
 
-/*
-function rellenarBotonesFicha(elemento, raza){
-    let numLikes = JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==raza).numLikes;
-    let numDislikes = JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==raza).numDislikes;
-    elemento.innerHTML+=                
-    `
-        <label for='anadir-carrito'>Unidades</label>
-        <input type='number' id='unidades${raza}' name='unidades' min='1' max='10' value='1'>
-        <button onclick='anadirCarrito(${raza})' class="anadir-carrito">Añadir al carrito</button>                    
-    `;
-    if(formOrden.innerHTML!=""){
-        elemento.innerHTML+=`<button onclick='mostrarDetallesProducto(${raza})' class="detalles-boton">Ver detalles</button>`;
+
+function rellenarBotonesFicha(elemento, gato) {
+    let numLikes = gato.likes;
+    let numDislikes = gato.dislikes;
+ 
+    // Botón detalles
+    if ($('#form-orden').html() !== "") { // Verificar que no esté en los detalles
+        let botonDetalles = $('<button>').text('Ver detalles').addClass('detalles-boton').attr('value', gato.raza);
+        botonDetalles.click(function() {
+            mostrarDetalles(gato.raza);
+        });
+        elemento.append(botonDetalles);
     }
-            
-    if(esFavorito(raza)){
-        elemento.innerHTML+=`<button onclick='favPulsado(this, ${raza})' class="favoritos-boton fav">En tu lista de favoritos</button>`;
-    }else{
-        elemento.innerHTML+=`<button onclick='favPulsado(this, ${raza})' class="favoritos-boton">Añadir a favoritos</button>`;
+     
+    // Botón favoritos
+    let botonFav = $('<button>').attr('value', gato.raza).addClass('favoritos-boton');
+    if (esFavorito(gato.raza)) {
+        botonFav.addClass('fav').text('En tu lista de favoritos');
+    } else {
+        botonFav.text('Añadir a favoritos');
     }
+
+    botonFav.click(function() {
+        favPulsado(botonFav, gato.raza);
+    });
+
+    elemento.append(botonFav);
     
-    //miro si el usuario logueado esta en la lista de likeObjeto para aplicar o no la clase like-pulsado
-    let usuarioLogeado = JSON.parse(localStorage.getItem('usuarioLogeado'));
-    if(usuarioLogeado){
-        if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==raza).usuarios.includes(usuarioLogeado.username)){
-            elemento.innerHTML+=`<button onclick='likePulsado(this, ${raza})' class="gusta-boton" disabled>Me gusta (${numLikes})</button>`;
-        }else if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==raza).usuarios.includes(usuarioLogeado.username)){
-            elemento.innerHTML+=`<button onclick='likePulsado(this, ${raza})' class="gusta-boton like-pulsado">Me gusta (${numLikes})</button>`;
-        }else{
-             elemento.innerHTML+=`<button onclick='likePulsado(this, ${raza})' class="gusta-boton">Me gusta (${numLikes})</button>`;
+    // Botones like y dislike
+    if (JSON.parse(localStorage.getItem('usuarioLogueado'))) { // Si está logueado
+        let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
+        let usuarioLikes = usuarioLogueado.likes || []; // Inicializar como arreglo vacío si no está definido
+        let usuarioDislikes = usuarioLogueado.dislikes || []; // Inicializar como arreglo vacío si no está definido
+        // Si el usuario logueado ha dado dislike a este gato, no podrá darle like
+        if (usuarioDislikes.find(g => g.raza === gato.raza)) {
+            let botonLike = $('<button>').text(`Me gusta (${numLikes})`).addClass('gusta-boton').attr('disabled', true);
+            elemento.append(botonLike);
+        // Si al usuario logueado le gusta el gato se le añade la clase like-pulsado
+        } else if (usuarioLikes.find(g => g.raza === gato.raza)) {
+            let botonLike = $('<button>').text(`Te gusta (${numLikes})`).addClass('gusta-boton like-pulsado');
+            botonLike.click(function() {
+                likePulsado(this, gato.raza);
+            });
+            elemento.append(botonLike);
+        } else {
+            let botonLike = $('<button>').text(`Me gusta (${numLikes})`).addClass('gusta-boton');
+            botonLike.click(function() {
+                likePulsado(this, gato.raza);
+            });
+            elemento.append(botonLike);
         }
                 
-        //miro si el usuario logueado esta en la lista de dislikeObjeto para aplicar o no la clase dislike-pulsado
-        if(JSON.parse(localStorage.getItem('likesObjeto')).find(p=>p.id==raza).usuarios.includes(usuarioLogeado.username)){
-            elemento.innerHTML+=`<button onclick='dislikePulsado(this, ${raza})' class="no-gusta-boton" disabled>No me gusta (${numLikes})</button>`;
-        }else if(JSON.parse(localStorage.getItem('dislikesObjeto')).find(p=>p.id==raza).usuarios.includes(usuarioLogeado.username)){
-            elemento.innerHTML+=`<button onclick='dislikePulsado(this, ${raza})' class="no-gusta-boton dislike-pulsado">No me gusta (${numDislikes})</button>`;
-        }else{
-            elemento.innerHTML+=`<button onclick='dislikePulsado(this, ${raza})' class="no-gusta-boton">No me gusta (${numDislikes})</button>`;
+        // Verificar si el usuario logueado está en la lista de likes para deshabilitar el botón dislike
+        if (usuarioLikes.find(g => g.raza === gato.raza)) {
+            let botonDislike = $('<button>').text(`No te gusta (${numDislikes})`).addClass('no-gusta-boton').attr('disabled', true);
+            elemento.append(botonDislike);
+        } else if (usuarioDislikes.find(g => g.raza === gato.raza)) {
+            let botonDislike = $('<button>').text(`No te gusta (${numDislikes})`).addClass('no-gusta-boton dislike-pulsado');
+            botonDislike.click(function() {
+                dislikePulsado(this, gato.raza);
+            });
+            elemento.append(botonDislike);
+        } else {
+            let botonDislike = $('<button>').text(`No me gusta (${numDislikes})`).addClass('no-gusta-boton');
+            botonDislike.click(function() {
+                dislikePulsado(this, gato.raza);
+            });
+            elemento.append(botonDislike);
         }
-    }else{//Si no está logueado las funciones le pedirán iniciar sesión cuando pulse los botones
-        elemento.innerHTML+=`
-            <button onclick='likePulsado(this, ${raza})' class="gusta-boton">Me gusta (${numLikes})</button>
-            <button onclick='dislikePulsado(this, ${raza})'class="no-gusta-boton">No me gusta (${numDislikes})</button>
-        `;
+    } else { // Si no está logueado, las funciones le pedirán iniciar sesión cuando pulse los botones
+        let botonLike = $('<button>').text(`Me gusta (${numLikes})`).addClass('gusta-boton');
+        botonLike.click(function() {
+            likePulsado(this, gato.raza);
+        });
+        elemento.append(botonLike);
+        let botonDislike = $('<button>').text(`No me gusta (${numDislikes})`).addClass('no-gusta-boton');
+        botonDislike.click(function() {
+            dislikePulsado(this, gato.raza);
+        });
+        elemento.append(botonDislike);   
     }
 }
-    */
+
 
 function distribucionTabla(gatos) {
     $('#contenidoSection').empty();//Vacío el contenido para que no se acumule
@@ -222,10 +264,10 @@ function distribucionTabla(gatos) {
             celda.attr('class', 'casilla-gato')
             let contenidoCelda = `
                 <h3>${gato.raza}</h3>
-                <img src="${gato.imagen}" alt="${gato.raza}">
+                <img src="${gato.imagenes[0]}" alt="${gato.raza}">
             `;
             celda.html(contenidoCelda);
-//            rellenarBotonesFicha(celda, gato.raza);
+            rellenarBotonesFicha(celda, gato);
             fila.append(celda);
             contador++;
         }
@@ -245,10 +287,51 @@ function distribucionLista(gatos) {
         let item = $('<li></li>').attr('class', 'casilla-gato');
         let contenidoItem = `
                 <h3>${gato.raza}</h3>
-                <img src="${gato.imagen}" alt="${gato.raza}">
+                <img src="${gato.imagenes[0]}" alt="${gato.raza}">
             `;
         item.html(contenidoItem);
- //       rellenarBotonesFicha(item, gato.raza);
+        rellenarBotonesFicha(item, gato);
         lista.append(item);
     });
 }
+
+function favPulsado(boton, gatoRaza) {
+    let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (usuarioLogueado) {
+        let favoritos = usuarioLogueado.favoritos || [];
+        let gato = favoritos.find(g => g.raza === gatoRaza);
+        if (gato) {
+            favoritos = favoritos.filter(g => g.raza !== gatoRaza);
+            boton.removeClass('fav').text('Añadir a favoritos');
+        } else {
+            favoritos.push({ raza: gatoRaza });
+            boton.addClass('fav').text('En tu lista de favoritos');
+        }
+        usuarioLogueado.favoritos = favoritos;
+        localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioLogueado));
+        //tambien lo guardo en el localstorage de usuarios
+        let usuarios = JSON.parse(localStorage.getItem('usuarios'));
+        let usuario = usuarios.find(u => u.nombreUsuario === usuarioLogueado.nombreUsuario);
+        usuario.favoritos = favoritos;
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        mostrarRazas();
+    } else {
+        alert('Debes iniciar sesión para añadir a favoritos');
+    }
+}
+
+
+function esFavorito(gatoRaza) {
+    let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (usuarioLogueado) {
+        let favoritos = usuarioLogueado.favoritos || [];
+        if (favoritos.find(g => g.raza === gatoRaza)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
+

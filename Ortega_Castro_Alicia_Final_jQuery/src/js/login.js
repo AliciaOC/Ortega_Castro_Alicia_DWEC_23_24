@@ -11,13 +11,19 @@ $('#loginButton').click(function(event){
 
 //--------Funciones
 function iniciarSesion(){
-    if(!localStorage.getItem('usuarioLogueado')){
+    if(!JSON.parse(localStorage.getItem('usuarioLogueado')) || JSON.parse(localStorage.getItem('usuarioLogueado') == null)){
         //Obtengo los datos del formulario
         let nombreUsuario = $('#nombreUsuario').val();
         let password = $('#password').val();
         //Obtengo el usuario del localstorage
-        let usuario = JSON.parse(localStorage.getItem('usuarios')).find(usuario => usuario.nombreUsuario == nombreUsuario);
-            //Si el usuario no existe, muestro un mensaje de error
+        let usuarios = JSON.parse(localStorage.getItem('usuarios')) || null;
+        //Busco el usuario en el array de usuarios
+        if(!usuarios){
+            alert('El usuario no existe.');
+            return;
+        } 
+        let usuario = usuarios.find(usuario => usuario.nombreUsuario == nombreUsuario);
+        //Si el usuario no existe, muestro un mensaje de error
         if(usuario == null){
             alert('El usuario no existe');
         }else{
@@ -44,9 +50,9 @@ function registrarUsuario(){
     let password = $('#password').val();
     let password2 = $('#password2').val();
     //Obtengo el usuario del localstorage
-    let usuarios = JSON.parse(localStorage.getItem('usuarios'));
+    let usuarios = JSON.parse(localStorage.getItem('usuarios')) || null;
     //Comprobaciones
-    if(!usuarios){
+    if(!usuarios || usuarios == null){
         usuarios = [];
     }else{
         if(usuarios.find(usuario => usuario.nombreUsuario == nombreUsuario)){
@@ -58,7 +64,13 @@ function registrarUsuario(){
         }
     }
     //Creo el usuario
-    let usuario = {nombreUsuario: nombreUsuario, password: password};
+    let usuario = {
+        nombreUsuario: nombreUsuario, 
+        password: password,
+        favoritos: [],
+        likes: [],
+        dislikes: []
+    };
     usuarios.push(usuario);
     localStorage.setItem('usuarios', JSON.stringify(usuarios));
     alert('Usuario registrado correctamente');
@@ -66,7 +78,7 @@ function registrarUsuario(){
 }
 
 function logout(){
-    if(localStorage.getItem('usuarioLogueado') == null){
+    if(!JSON.parse(localStorage.getItem('usuarioLogueado')) || JSON.parse(localStorage.getItem('usuarioLogueado') == null)){
         alert('No hay un usuario logueado');
     }else{
         //Borro el usuario del localstorage
@@ -78,5 +90,9 @@ function logout(){
         if(url.includes('/html/')){
             window.location.href = '../index.html';
         }
+        //borro el párrado del header
+        $('header p').remove();
+        //vuelvo a mostrar los gatos, para que se desactiven estilos de usuario logueado
+        mostrarRazas();
     }
 }
