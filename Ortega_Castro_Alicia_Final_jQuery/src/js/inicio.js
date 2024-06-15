@@ -5,7 +5,6 @@ let orden=$('#ordenar').val();
 let vista=$('#vista').val();
 let parrafoRecargar=$('<p>').text('Ha habido un error con la obtención de información, por favor recargue la página o inténtelo más tarde.').attr('id', 'recargar');
 
-localStorage.clear();
 //------------------------Eventos
 //Evento para el cambio de orden
 $('#ordenar').change(function(){
