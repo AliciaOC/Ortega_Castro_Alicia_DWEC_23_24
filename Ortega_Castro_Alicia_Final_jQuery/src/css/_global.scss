@@ -97,3 +97,36 @@ ul{
 .dislike-pulsado{
     background-color: red;
 }
+
+#contenedorDetalles{
+    h2{
+        text-align: center;
+        color:rgb(203, 30, 76);
+        font-size: xx-large;
+    }
+    p{
+        color: rgb(63, 6, 24);
+        padding: 1rem;
+        margin: 1rem;
+        border-radius: 20px;
+        text-align: center;
+        font-size: large;
+    }
+    #contenedorImagenes{
+        width: 100%;
+        display: grid;
+        justify-content: center;
+        img{
+            margin: 2rem;
+            max-width: 300px;
+        }
+    }
+    #cajaBotones{
+        width: 100%;
+        button{
+            font-size: larger;
+        }
+    }
+
+}
+

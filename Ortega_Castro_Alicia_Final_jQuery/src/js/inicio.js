@@ -59,6 +59,7 @@ async function obtenerRazas() {
         },
         error: function (error) {
             console.error(error);
+            alert('Por favor, recarga la página');
         }
     });
 
@@ -78,6 +79,7 @@ async function obtenerRazas() {
         },
         error: function (error) {
             console.error(error);
+            alert('Por favor, recarga la página');
         }
     });
 
@@ -115,6 +117,7 @@ async function obtenerImagenes(razas) {
             },
             error: function (error) {
                 console.error(error);
+                alert('Por favor, recarga la página');
             }
         });
     });
@@ -123,6 +126,24 @@ async function obtenerImagenes(razas) {
         localStorage.setItem('gatos', JSON.stringify(razas));
         mostrarRazas();
     });
+}
+async function obtenerFacts(){//Esta se usa en mostrar detalles
+    const FACTS = "https://catfact.ninja/facts?max_length=300&limit=20";
+    let facts = [];
+    await $.ajax({
+        url: FACTS,
+        type: 'GET',
+        success: function (respuesta) {
+            respuesta.data.forEach(dato => {
+                facts.push(dato.fact);
+            });
+        },
+        error: function (error) {
+            console.error(error);
+            alert('Para obtener un dato aleatorio sobre gatos, recarga la página');
+        }
+    });
+    return facts;
 }
 //------------------------------------------------------------------fin funciones que interactúan con la API
 //funciones para mostrar los gatos e interactuar
@@ -148,13 +169,14 @@ function mostrarRazas() {
     }
 }
 
-
+//lo necesito en tabla, lista y en detalles
 function rellenarBotonesFicha(elemento, gato) {
     let numLikes = gato.likes;
     let numDislikes = gato.dislikes;
  
     // Botón detalles
-    if ($('#form-orden').html() !== "") { // Verificar que no esté en los detalles
+    //verifico que no esté form-orden oculto
+    if ($('#form-orden').is(':visible')) {
         let botonDetalles = $('<button>').text('Ver detalles').addClass('detalles-boton').attr('value', gato.raza);
         botonDetalles.click(function() {
             mostrarDetalles(gato.raza);
@@ -266,9 +288,11 @@ function favPulsado(boton, gatoRaza) {
         if (gato) {
             favoritos = favoritos.filter(g => g.raza !== gatoRaza);
             boton.removeClass('fav');
+            boton.text('Añadir a favoritos');
         } else {
             favoritos.push({ raza: gatoRaza });
             boton.addClass('fav');
+            boton.text('En tu lista de favoritos');
         }
         usuarioLogueado.favoritos = favoritos;
         localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioLogueado));
@@ -277,7 +301,6 @@ function favPulsado(boton, gatoRaza) {
         let usuario = usuarios.find(u => u.nombreUsuario === usuarioLogueado.nombreUsuario);
         usuario.favoritos = favoritos;
         localStorage.setItem('usuarios', JSON.stringify(usuarios));
-        mostrarRazas();
     } else {
         alert('Debes iniciar sesión para añadir a favoritos');
     }
@@ -333,11 +356,16 @@ function likePulsado(boton, gatoRaza){
             usuarioLikes = usuarioLikes.filter(g => g.raza !== gatoRaza);
             gato.likes--;
             boton.removeClass('like-pulsado');
+            boton.text(`Me gusta (${gato.likes})`);
+            //habilito el botón hermano siguiente
+            boton.next().attr('disabled', false);
         }else{
             //Si no le había dado like, lo añado a la lista
             usuarioLikes.push({raza: gatoRaza});
             gato.likes++;
             boton.addClass('like-pulsado');
+            boton.text(`Ya te gusta (${gato.likes})`);
+            boton.next().attr('disabled', true);
         }
         //Guardo los cambios en usuarioLogueado, en la lista de usuarios y en la lista de gatos
         //logueado
@@ -350,8 +378,6 @@ function likePulsado(boton, gatoRaza){
         localStorage.setItem('usuarios', JSON.stringify(usuarios));
         //gatos
         localStorage.setItem('gatos', JSON.stringify(gatos));
-        //Recargo por si ha habido cambios en los estilos. Los estilos se aplican en la funcion rellenarBotonesFicha
-        mostrarRazas();
     } else {
         alert('Debes iniciar sesión para dar like');
     }
@@ -373,11 +399,16 @@ function dislikePulsado(boton, gatoRaza){
             usuarioDislikes = usuarioDislikes.filter(g => g.raza !== gatoRaza);
             gato.dislikes--;
             boton.removeClass('dislike-pulsado');
+            boton.text(`No me gusta (${gato.dislikes})`);
+            //habilito el botón hermano anterior
+            boton.prev().attr('disabled', false);
         }else{
             //Si no le había dado dislike, lo añado a la lista
             usuarioDislikes.push({raza: gatoRaza});
             gato.dislikes++;
             boton.addClass('dislike-pulsado');
+            boton.text(`Ya no te gusta (${gato.dislikes})`);
+            boton.prev().attr('disabled', true);
         }
         //Guardo los cambios en usuarioLogueado, en la lista de usuarios y en la lista de gatos
         //logueado
@@ -390,8 +421,6 @@ function dislikePulsado(boton, gatoRaza){
         localStorage.setItem('usuarios', JSON.stringify(usuarios));
         //gatos
         localStorage.setItem('gatos', JSON.stringify(gatos));
-        //Recargo por si ha habido cambios en los estilos. Los estilos se aplican en la funcion rellenarBotonesFicha
-        mostrarRazas();
     } else {
         alert('Debes iniciar sesión para dar dislike');
     }
@@ -416,12 +445,29 @@ function mostrarDetalles(raza) {
         contenedorImagenes.append(img);
     });
     //Creo los botones
+    let cajaBotones = $('<div>').attr('id', 'cajaBotones');
     let botones = rellenarBotonesFicha(contenedorDetalles, gato);
+    cajaBotones.append(botones);
+    //Añado un párrafo que contendrá un dato aleatorio sobre gatos
+    let parrafoFacts = $('<p>').attr('id', 'fact');
+    obtenerFacts().then(facts => {
+        let random = Math.floor(Math.random() * facts.length);
+        parrafoFacts.text('Dato aleatorío interesante: '+facts[random]);
+    });
+    //Añado una lista con las características de la raza
+    let lista = $('<ul>');
+    let caracteristicas = ['País de origen: ' + gato.pais, 'Origen: ' + gato.origen, 'Pelo: ' + gato.pelo, 'Patrón: ' + gato.patron];
+    caracteristicas.forEach(caracteristica => {
+        let item = $('<li>').text(caracteristica);
+        lista.append(item);
+    });
 
     //Añado el contenido al contenedor
     contenedorDetalles.append(titulo);
+    contenedorDetalles.append(parrafoFacts);
     contenedorDetalles.append(contenedorImagenes);
-    contenedorDetalles.append(botones);
+    contenedorDetalles.append(cajaBotones);
+    contenedorDetalles.append(lista);
     //Añado el contenedor a la sección
     $('#contenidoSection').append(contenedorDetalles);
 }
