@@ -33,6 +33,7 @@ $(document).ready(function() {
     sectionCargando.append(gifCargando);
     sectionCargando.hide();
     $('main').append(sectionCargando);
+
     //Compruebo si ya tengo las razas en localStorage para ahorrar tiempo
     if (localStorage.getItem('gatos') === null) {
         //Espero para que se vea el gift de cargando, así es menos invasivo 
@@ -59,7 +60,7 @@ async function obtenerRazas() {
         type: 'GET',
         success: function (respuesta) {
             respuesta.data.forEach(dato => {
-                if (dato.breed && !razas1.some(r => r.raza === dato.breed)) {
+                if (dato.breed && !razas1.some(r => r.raza === dato.breed)) {//.some devuelve true si encuentra un elemento que cumple la condición, aquí si ya existe la raza no la añado
                     razas1.push({
                         raza: dato.breed,
                         pais: dato.country,
@@ -122,7 +123,7 @@ async function obtenerRazas() {
 async function obtenerImagenes(razas) {
     let solicitudes = razas.map(raza => {
         let url = `https://api.thecatapi.com/v1/images/search?limit=3&breed_ids=${raza.id}&api_key=live_vIcm09jTwDDE89WlD2S9JAEn5wz1laQkoJuiuHGcvAUTc3noy8MwpyhL0m6oBpDO`;
-        return $.ajax({
+        return $.ajax({//el return aquí es necesario para que se guarde la promesa en el array solicitudes, no termina la función
             url: url,
             type: 'GET',
             success: function (respuesta) {
@@ -171,7 +172,7 @@ function mostrarRazas() {
     let gatos = JSON.parse(localStorage.getItem('gatos')) || [];
     //orden
     if (orden === "ascendente") {
-        gatos.sort((a, b) => a.raza.localeCompare(b.raza));
+        gatos.sort((a, b) => a.raza.localeCompare(b.raza));//localeCompare compara cadenas de texto
     } else if (orden === "descendente") {
         gatos.sort((a, b) => b.raza.localeCompare(a.raza));
     }
@@ -189,7 +190,7 @@ function rellenarBotonesFicha(elemento, gato) {
     let numDislikes = gato.dislikes;
  
     // Botón detalles
-    //verifico que no esté form-orden oculto
+    //verifico que no esté form-orden oculto, para que no salga el botón detalles en detalles
     if ($('#form-orden').is(':visible')) {
         let botonDetalles = $('<button>').text('Ver detalles').addClass('detalles-boton').attr('value', gato.raza);
         botonDetalles.click(function() {
@@ -200,7 +201,7 @@ function rellenarBotonesFicha(elemento, gato) {
      
     // Botón favoritos
     let botonFav = $('<button>').attr('value', gato.raza).addClass('favoritos-boton');
-    if (esFavorito(gato.raza)) {
+    if (esFavorito(gato.raza)) {//esto es necesario para la primera carga
         botonFav.addClass('fav').text('En tu lista de favoritos');
     } else {
         botonFav.text('Añadir a favoritos');
@@ -225,6 +226,7 @@ function rellenarBotonesFicha(elemento, gato) {
         likePulsado(botonLike, gato.raza);
     });
     elemento.append(botonLike);
+
     //dislike
     let botonDislike = $('<button>').attr('value', gato.raza).addClass('dislike-boton').text(`No me gusta (${numDislikes})`);
     if (tieneLike(gato.raza)) {
@@ -242,6 +244,7 @@ function rellenarBotonesFicha(elemento, gato) {
 
 function distribucionTabla(gatos) {
     $('#contenidoSection').empty();//Vacío el contenido para que no se acumule
+
     let tabla = $('#tablaGatos');
     if (tabla.length===0) {
         tabla = $('<table></table>').attr('id', 'tablaGatos');        
@@ -299,18 +302,19 @@ function favPulsado(boton, gatoRaza) {
     if (usuarioLogueado) {
         let favoritos = usuarioLogueado.favoritos || [];
         let gato = favoritos.find(g => g.raza === gatoRaza);
-        if (gato) {
+        if (gato) {//si ya estaba en favoritos, lo quito
             favoritos = favoritos.filter(g => g.raza !== gatoRaza);
             boton.removeClass('fav');
             boton.text('Añadir a favoritos');
-        } else {
+        } else {//si no estaba en favoritos, lo añado
             favoritos.push({ raza: gatoRaza });
             boton.addClass('fav');
             boton.text('En tu lista de favoritos');
         }
+        //Guardo los cambios en el usuario logueado y en el localstorage de usuarios
         usuarioLogueado.favoritos = favoritos;
         localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioLogueado));
-        //tambien lo guardo en el localstorage de usuarios
+
         let usuarios = JSON.parse(localStorage.getItem('usuarios'));
         let usuario = usuarios.find(u => u.nombreUsuario === usuarioLogueado.nombreUsuario);
         usuario.favoritos = favoritos;
@@ -368,7 +372,9 @@ function likePulsado(boton, gatoRaza){
         if (gatoEncontrado) {
             //Si ya le había dado like, lo quito de la lista 
             usuarioLikes = usuarioLikes.filter(g => g.raza !== gatoRaza);
+            //le quito un like al gato
             gato.likes--;
+            //cambios estéticos
             boton.removeClass('like-pulsado');
             boton.text(`Me gusta (${gato.likes})`);
             //habilito el botón hermano siguiente
