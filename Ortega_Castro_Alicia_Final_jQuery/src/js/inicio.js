@@ -186,58 +186,30 @@ function rellenarBotonesFicha(elemento, gato) {
     elemento.append(botonFav);
     
     // Botones like y dislike
-    if (JSON.parse(localStorage.getItem('usuarioLogueado'))) { // Si está logueado
-        let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
-        let usuarioLikes = usuarioLogueado.likes || []; // Inicializar como arreglo vacío si no está definido
-        let usuarioDislikes = usuarioLogueado.dislikes || []; // Inicializar como arreglo vacío si no está definido
-        // Si el usuario logueado ha dado dislike a este gato, no podrá darle like
-        if (usuarioDislikes.find(g => g.raza === gato.raza)) {
-            let botonLike = $('<button>').text(`Me gusta (${numLikes})`).addClass('gusta-boton').attr('disabled', true);
-            elemento.append(botonLike);
-        // Si al usuario logueado le gusta el gato se le añade la clase like-pulsado
-        } else if (usuarioLikes.find(g => g.raza === gato.raza)) {
-            let botonLike = $('<button>').text(`Te gusta (${numLikes})`).addClass('gusta-boton like-pulsado');
-            botonLike.click(function() {
-                likePulsado(this, gato.raza);
-            });
-            elemento.append(botonLike);
-        } else {
-            let botonLike = $('<button>').text(`Me gusta (${numLikes})`).addClass('gusta-boton');
-            botonLike.click(function() {
-                likePulsado(this, gato.raza);
-            });
-            elemento.append(botonLike);
-        }
-                
-        // Verificar si el usuario logueado está en la lista de likes para deshabilitar el botón dislike
-        if (usuarioLikes.find(g => g.raza === gato.raza)) {
-            let botonDislike = $('<button>').text(`No te gusta (${numDislikes})`).addClass('no-gusta-boton').attr('disabled', true);
-            elemento.append(botonDislike);
-        } else if (usuarioDislikes.find(g => g.raza === gato.raza)) {
-            let botonDislike = $('<button>').text(`No te gusta (${numDislikes})`).addClass('no-gusta-boton dislike-pulsado');
-            botonDislike.click(function() {
-                dislikePulsado(this, gato.raza);
-            });
-            elemento.append(botonDislike);
-        } else {
-            let botonDislike = $('<button>').text(`No me gusta (${numDislikes})`).addClass('no-gusta-boton');
-            botonDislike.click(function() {
-                dislikePulsado(this, gato.raza);
-            });
-            elemento.append(botonDislike);
-        }
-    } else { // Si no está logueado, las funciones le pedirán iniciar sesión cuando pulse los botones
-        let botonLike = $('<button>').text(`Me gusta (${numLikes})`).addClass('gusta-boton');
-        botonLike.click(function() {
-            likePulsado(this, gato.raza);
-        });
-        elemento.append(botonLike);
-        let botonDislike = $('<button>').text(`No me gusta (${numDislikes})`).addClass('no-gusta-boton');
-        botonDislike.click(function() {
-            dislikePulsado(this, gato.raza);
-        });
-        elemento.append(botonDislike);   
+    //like
+    let botonLike = $('<button>').attr('value', gato.raza).addClass('like-boton').text(`Me gusta (${numLikes})`);
+    if (tieneDislike(gato.raza)) {
+        //desactivo el botón like si ya le ha dado dislike
+        botonLike.attr('disabled', true);
+    }else if (tieneLike(gato.raza)) {
+        botonLike.addClass('like-pulsado').text(`Ya te gusta (${numLikes})`);
     }
+    botonLike.click(function() {
+        likePulsado(botonLike, gato.raza);
+    });
+    elemento.append(botonLike);
+    //dislike
+    let botonDislike = $('<button>').attr('value', gato.raza).addClass('dislike-boton').text(`No me gusta (${numDislikes})`);
+    if (tieneLike(gato.raza)) {
+        //desactivo el botón dislike si ya le ha dado like
+        botonDislike.attr('disabled', true);
+    }else if (tieneDislike(gato.raza)) {
+        botonDislike.addClass('dislike-pulsado').text(`Ya no te gusta (${numDislikes})`);
+    }
+    botonDislike.click(function() {
+        dislikePulsado(botonDislike, gato.raza);
+    });
+    elemento.append(botonDislike);
 }
 
 
@@ -302,10 +274,10 @@ function favPulsado(boton, gatoRaza) {
         let gato = favoritos.find(g => g.raza === gatoRaza);
         if (gato) {
             favoritos = favoritos.filter(g => g.raza !== gatoRaza);
-            boton.removeClass('fav').text('Añadir a favoritos');
+            boton.removeClass('fav');
         } else {
             favoritos.push({ raza: gatoRaza });
-            boton.addClass('fav').text('En tu lista de favoritos');
+            boton.addClass('fav');
         }
         usuarioLogueado.favoritos = favoritos;
         localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioLogueado));
@@ -332,6 +304,106 @@ function esFavorito(gatoRaza) {
     return false;
 }
 
+function tieneLike(gatoRaza) {
+    let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (usuarioLogueado) {
+        let likes = usuarioLogueado.likes || [];
+        if (likes.find(g => g.raza === gatoRaza)) {
+            return true;
+        }
+    }
+    return false;
+}
 
+function tieneDislike(gatoRaza) {
+    let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (usuarioLogueado) {
+        let dislikes = usuarioLogueado.dislikes || [];
+        if (dislikes.find(g => g.raza === gatoRaza)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function likePulsado(boton, gatoRaza){
+    //compruebo que haya un usuario logueado
+    let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (usuarioLogueado) {
+        //Compruebo si ya le había dado like
+        let usuarioLikes = usuarioLogueado.likes || [];
+        let gatoEncontrado = usuarioLikes.find(g => g.raza === gatoRaza);//en el array de likes del usuario logueado
+        
+        let gatos = JSON.parse(localStorage.getItem('gatos'));
+        let gato = gatos.find(g => g.raza === gatoRaza);//en el array de gatos
+
+        if (gatoEncontrado) {
+            //Si ya le había dado like, lo quito de la lista 
+            usuarioLikes = usuarioLikes.filter(g => g.raza !== gatoRaza);
+            gato.likes--;
+            boton.removeClass('like-pulsado');
+        }else{
+            //Si no le había dado like, lo añado a la lista
+            usuarioLikes.push({raza: gatoRaza});
+            gato.likes++;
+            boton.addClass('like-pulsado');
+        }
+        //Guardo los cambios en usuarioLogueado, en la lista de usuarios y en la lista de gatos
+        //logueado
+        usuarioLogueado.likes = usuarioLikes;
+        localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioLogueado));
+        //usuarios
+        let usuarios = JSON.parse(localStorage.getItem('usuarios'));
+        let usuario = usuarios.find(u => u.nombreUsuario === usuarioLogueado.nombreUsuario);
+        usuario.likes = usuarioLikes;
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        //gatos
+        localStorage.setItem('gatos', JSON.stringify(gatos));
+        //Recargo por si ha habido cambios en los estilos. Los estilos se aplican en la funcion rellenarBotonesFicha
+        mostrarRazas();
+    } else {
+        alert('Debes iniciar sesión para dar like');
+    }
+}
+
+function dislikePulsado(boton, gatoRaza){
+    //compruebo que haya un usuario logueado
+    let usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (usuarioLogueado) {
+        //Compruebo si ya le había dado dislike
+        let usuarioDislikes = usuarioLogueado.dislikes || [];
+        let gatoEncontrado = usuarioDislikes.find(g => g.raza === gatoRaza);//en el array de dislikes del usuario logueado
+        
+        let gatos = JSON.parse(localStorage.getItem('gatos'));
+        let gato = gatos.find(g => g.raza === gatoRaza);//en el array de gatos
+
+        if (gatoEncontrado) {
+            //Si ya le había dado dislike, lo quito de la lista 
+            usuarioDislikes = usuarioDislikes.filter(g => g.raza !== gatoRaza);
+            gato.dislikes--;
+            boton.removeClass('dislike-pulsado');
+        }else{
+            //Si no le había dado dislike, lo añado a la lista
+            usuarioDislikes.push({raza: gatoRaza});
+            gato.dislikes++;
+            boton.addClass('dislike-pulsado');
+        }
+        //Guardo los cambios en usuarioLogueado, en la lista de usuarios y en la lista de gatos
+        //logueado
+        usuarioLogueado.dislikes = usuarioDislikes;
+        localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioLogueado));
+        //usuarios
+        let usuarios = JSON.parse(localStorage.getItem('usuarios'));
+        let usuario = usuarios.find(u => u.nombreUsuario === usuarioLogueado.nombreUsuario);
+        usuario.dislikes = usuarioDislikes;
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        //gatos
+        localStorage.setItem('gatos', JSON.stringify(gatos));
+        //Recargo por si ha habido cambios en los estilos. Los estilos se aplican en la funcion rellenarBotonesFicha
+        mostrarRazas();
+    } else {
+        alert('Debes iniciar sesión para dar dislike');
+    }
+}
 
 
