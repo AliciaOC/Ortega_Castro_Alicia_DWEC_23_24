@@ -1,6 +1,5 @@
 //------------------------Variables
 const URL_RAZAS_DATOS='https://catfact.ninja/breeds';
-const URL_FOTOS="https://api.thecatapi.com/v1/images/search?breed_ids={breed.id}";
 
 let orden=$('#ordenar').val();
 let vista=$('#vista').val();
@@ -18,16 +17,24 @@ $('#vista').change(function(){
     mostrarRazas();
 });
 
+//Evento para enlace-inicio
+$('#enlace-inicio').click(function(event){
+    event.preventDefault();
+    mostrarRazas();
+});
+
 // -----------------------Llamadas a las funciones
 // Voy a guardar la información que necesito para el inicio (razas, id razas y foto) en localStorage en 'gatos'. LocalStorage es más rápido que hacer llamadas AJAX y así no tengo que estar pendiente de la asincronía
-if (JSON.parse(localStorage.getItem('gatos')) == null){
-    obtenerRazas();
-    //en este punto el array aún no está completo, por la asíncronía de las llamadas AJAX, pero se guardará en localStorage cuando esté completo en la función obtenerImagenes, después pasa a mostrarRazas
-}else{
-    mostrarRazas();//me ahorro las dos primseras funciones
-}
+$(document).ready(function() {
+    if (localStorage.getItem('gatos') === null) {
+        obtenerRazas();
+    } else {
+        mostrarRazas();
+    }
+});
 
-// --------------------Funciones
+// --------------------Funciones---------------------
+//------------------------------------------------------------------funciones que interactúan con la API
 async function obtenerRazas() {
     let razasArray = [];
     let razas1 = [];
@@ -38,13 +45,17 @@ async function obtenerRazas() {
         url: URL_RAZAS_DATOS + '?limit=98',
         type: 'GET',
         success: function (respuesta) {
-            for (let i = 0; i < respuesta.data.length; i++) {
-                if (respuesta.data[i].breed != null && razas1.length < respuesta.data.length) {
-                    if (razas1.indexOf(respuesta.data[i].breed) == -1) {
-                        razas1.push(respuesta.data[i].breed); // es un string, no necesito parsear
-                    }
+            respuesta.data.forEach(dato => {
+                if (dato.breed && !razas1.some(r => r.raza === dato.breed)) {
+                    razas1.push({
+                        raza: dato.breed,
+                        pais: dato.country,
+                        origen: dato.origin,
+                        pelo: dato.coat,
+                        patron: dato.pattern
+                    });
                 }
-            }
+            });
         },
         error: function (error) {
             console.error(error);
@@ -56,15 +67,14 @@ async function obtenerRazas() {
         url: 'https://api.thecatapi.com/v1/breeds?limit=67',
         type: 'GET',
         success: function (respuesta) {
-            for (let i = 0; i < respuesta.length; i++) {
-                if (respuesta[i].name != null && razas2.length < respuesta.length) {
-                    if (razas2.indexOf(respuesta[i].name) == -1) {
-                        let idRaza = respuesta[i].id;
-                        let nombreRaza = respuesta[i].name;
-                        razas2.push({ raza: nombreRaza, id: idRaza }); // es un objeto, quiero obtener la raza pero tambien el id. La raza para ver cuales se repiten y el id para las imágenes
-                    }
+            respuesta.forEach(dato => {
+                if (dato.name && !razas2.some(r => r.raza === dato.name)) {
+                    razas2.push({
+                        raza: dato.name,
+                        id: dato.id
+                    });
                 }
-            }
+            });
         },
         error: function (error) {
             console.error(error);
@@ -73,34 +83,35 @@ async function obtenerRazas() {
 
     // Esperar a que ambas solicitudes finalicen
     $.when(solicitud1, solicitud2).done(function () {
-        for (let i = 0; i < razas1.length; i++) {
-            for (let j = 0; j < razas2.length; j++) {
-                if (razas1[i] == razas2[j].raza) {
-                    razasArray.push({
-                        raza: razas2[j].raza,
-                        id: razas2[j].id,
-                        likes: 0,
-                        dislikes: 0
-                    });
-                }
+        razas1.forEach(raza1 => {
+            let raza2 = razas2.find(raza2 => raza2.raza === raza1.raza);
+            if (raza2) {
+                razasArray.push({
+                    raza: raza2.raza,
+                    id: raza2.id,
+                    pais: raza1.pais,
+                    origen: raza1.origen,
+                    pelo: raza1.pelo,
+                    patron: raza1.patron,
+                    likes: 0,
+                    dislikes: 0
+                });
             }
-        }
+        });
         obtenerImagenes(razasArray);
     });
 }
 
+
 // Función para obtener las imágenes
 async function obtenerImagenes(razas) {
     let solicitudes = razas.map(raza => {
-        let url = URL_FOTOS.replace('{breed.id}', raza.id);
+        let url = `https://api.thecatapi.com/v1/images/search?limit=3&breed_ids=${raza.id}&api_key=live_vIcm09jTwDDE89WlD2S9JAEn5wz1laQkoJuiuHGcvAUTc3noy8MwpyhL0m6oBpDO`;
         return $.ajax({
             url: url,
             type: 'GET',
             success: function (respuesta) {
-                //voy a guardar las imagenes de la raza
-                let imagenes = respuesta.map(imagen => imagen.url);
-                raza.imagenes = imagenes;
-
+                raza.imagenes = respuesta.map(imagen => imagen.url);
             },
             error: function (error) {
                 console.error(error);
@@ -108,51 +119,31 @@ async function obtenerImagenes(razas) {
         });
     });
 
-    Promise.all(solicitudes).then(() => {// Cuando todas las solicitudes se hayan completado
-        // Guardar el array completo en localStorage
+    Promise.all(solicitudes).then(() => {
         localStorage.setItem('gatos', JSON.stringify(razas));
         mostrarRazas();
     });
 }
-
+//------------------------------------------------------------------fin funciones que interactúan con la API
+//funciones para mostrar los gatos e interactuar
 function mostrarRazas() {
-    // Reviso si los formularios de orden y vista están vacíos para volver a ponerles su contenido. Se vacían cuando se carga la ficha de detalles de un gato
-    if ($('#form-orden').val() == "") {
-        $('form-orden').html(
-            `
-            <label for="ordenar">Ordenar alfabéticamente:</label>
-            <select name="ordenar" id="ordenar">
-                <option value="ascendente" selected>Ascendente</option>
-                <option value="descendente">Descendente</option>
-            </select>
-            `
-        );
-    }
-    if ($('#form-vistas').val() == "") {
-        $('form-vistas').html(
-            `
-            <label for="vista">Vista:</label>
-            <select name="vista" id="vista">
-                <option value="tabla">Tabla</option>
-                <option value="lista">Lista</option>
-            </select>
-            `
-        );
-    }
+    //Reviso si los formularios estan ocultos y los hago visibles. Los oculto con toggle en mostrarDetalles
+    $('#form-orden').show();
+    $('#form-vistas').show();
 
     //Como aquí existen los formularios, según el valor de orden y vista se mostrarán los gatos
     //Aquí existe 'gatos' y contiene toda la información. Fuera de la función no es seguro que exista o que esté completo, así que inicializo aquí
-    let gatos = JSON.parse(localStorage.getItem('gatos'));
-    // Ordenar los gatos por raza
-    if (orden == "ascendente") {
-        gatos.sort()
-    } else if (orden == "descendente") {
-        gatos.sort().reverse();
+    let gatos = JSON.parse(localStorage.getItem('gatos')) || [];
+    //orden
+    if (orden === "ascendente") {
+        gatos.sort((a, b) => a.raza.localeCompare(b.raza));
+    } else if (orden === "descendente") {
+        gatos.sort((a, b) => b.raza.localeCompare(a.raza));
     }
-    // Mostrar los gatos en la vista seleccionada
-    if (vista == "tabla") {
+    //vista
+    if (vista === "tabla") {
         distribucionTabla(gatos);
-    } else if (vista == "lista") {
+    } else if (vista === "lista") {
         distribucionLista(gatos);
     }
 }
@@ -404,6 +395,35 @@ function dislikePulsado(boton, gatoRaza){
     } else {
         alert('Debes iniciar sesión para dar dislike');
     }
+}
+
+function mostrarDetalles(raza) {
+    //Limpio el contenido del main
+    $('#form-orden').toggle();
+    $('#form-vistas').toggle();
+    $('#contenidoSection').empty();
+    //obtengo el gato
+    let gatos = JSON.parse(localStorage.getItem('gatos'));
+    let gato = gatos.find(g => g.raza === raza);
+    //Creo el contenedor
+    let contenedorDetalles = $('<article>').attr('id', 'contenedorDetalles');
+    let contenedorImagenes = $('<div>').attr('id', 'contenedorImagenes');
+    //Creo el contenido
+    let titulo = $('<h2>').text(gato.raza);
+    //saco las imágenes y las meto en su contenedor
+    gato.imagenes.forEach(imagen => {
+        let img = $('<img>').attr('src', imagen).attr('alt', gato.raza);
+        contenedorImagenes.append(img);
+    });
+    //Creo los botones
+    let botones = rellenarBotonesFicha(contenedorDetalles, gato);
+
+    //Añado el contenido al contenedor
+    contenedorDetalles.append(titulo);
+    contenedorDetalles.append(contenedorImagenes);
+    contenedorDetalles.append(botones);
+    //Añado el contenedor a la sección
+    $('#contenidoSection').append(contenedorDetalles);
 }
 
 
