@@ -124,4 +124,18 @@ ul li:hover {
 }
 #contenedorDetalles #cajaBotones button {
   font-size: larger;
+}
+
+#cargando img {
+  margin: 0 auto;
+  display: block;
+  max-width: 200px;
+}
+
+#recargar {
+  font-size: xx-large;
+  color: red;
+  text-align: center;
+  margin: 3rem;
+  font-weight: bold;
 }/*# sourceMappingURL=principal.css.map */

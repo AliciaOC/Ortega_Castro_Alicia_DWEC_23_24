@@ -3,7 +3,9 @@ const URL_RAZAS_DATOS='https://catfact.ninja/breeds';
 
 let orden=$('#ordenar').val();
 let vista=$('#vista').val();
+let parrafoRecargar=$('<p>').text('Ha habido un error con la obtención de información, por favor recargue la página o inténtelo más tarde.').attr('id', 'recargar');
 
+localStorage.clear();
 //------------------------Eventos
 //Evento para el cambio de orden
 $('#ordenar').change(function(){
@@ -26,7 +28,19 @@ $('#enlace-inicio').click(function(event){
 // -----------------------Llamadas a las funciones
 // Voy a guardar la información que necesito para el inicio (razas, id razas y foto) en localStorage en 'gatos'. LocalStorage es más rápido que hacer llamadas AJAX y así no tengo que estar pendiente de la asincronía
 $(document).ready(function() {
+    //Creo un gif de cargando y lo oculto
+    let sectionCargando=$('<section>').attr('id', 'cargando');
+    let gifCargando=$('<img>').attr('src', 'img/cargando.gif').attr('alt', 'Cargando');
+    sectionCargando.append(gifCargando);
+    sectionCargando.hide();
+    $('main').append(sectionCargando);
+    //Compruebo si ya tengo las razas en localStorage para ahorrar tiempo
     if (localStorage.getItem('gatos') === null) {
+        //Espero para que se vea el gift de cargando, así es menos invasivo 
+        setTimeout(() => {
+            $('#cargando').show();
+        }, 500);
+
         obtenerRazas();
     } else {
         mostrarRazas();
@@ -59,7 +73,7 @@ async function obtenerRazas() {
         },
         error: function (error) {
             console.error(error);
-            alert('Por favor, recarga la página');
+            $('#contenidoSection').append(parrafoRecargar);
         }
     });
 
@@ -79,7 +93,7 @@ async function obtenerRazas() {
         },
         error: function (error) {
             console.error(error);
-            alert('Por favor, recarga la página');
+            $('#contenidoSection').append(parrafoRecargar);
         }
     });
 
@@ -117,13 +131,14 @@ async function obtenerImagenes(razas) {
             },
             error: function (error) {
                 console.error(error);
-                alert('Por favor, recarga la página');
+                $('#contenidoSection').append(parrafoRecargar);
             }
         });
     });
 
     Promise.all(solicitudes).then(() => {
         localStorage.setItem('gatos', JSON.stringify(razas));
+        $('#cargando').hide();
         mostrarRazas();
     });
 }
